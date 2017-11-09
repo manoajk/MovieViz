@@ -1,2 +1,6 @@
 *.gz
 *.tsv
+__pycache__/
+*.pyc
+.DS_STORE
+secrets.py
