@@ -21,9 +21,9 @@ s3 = boto3.resource('s3')
 
 try:
 	print("Downloading '" + FILE + "' from bucket '" + BUCKET_NAME + "' at key '" + KEY + "'...")
-    s3.Bucket(BUCKET_NAME).download_file(KEY, FILE, ExtraArgs={"RequestPayer" : "requester"})
+	s3.Bucket(BUCKET_NAME).download_file(KEY, FILE, ExtraArgs={"RequestPayer" : "requester"})
 except botocore.exceptions.ClientError as e:
-    if e.response['Error']['Code'] == "404":
-        print("The object does not exist.")
-    else:
-        raise
+	if e.response['Error']['Code'] == "404":
+		print("The object does not exist.")
+	else:
+		raise
