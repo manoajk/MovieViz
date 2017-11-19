@@ -3,4 +3,10 @@ from flask import redirect, render_template, request, session, url_for
 
 @app.route('/')
 def front_page():
-	return "Howdy CX4242 Group 01!"
+	statement = "Howdy CX4242 Group 01!"
+	return render_template("index.html", statement=statement)
+	# return "Howdy CX4242 Group 01!"
+
+@app.route('/SigmaJS_Example')
+def sigma_ex():
+	return render_template("example_sigma.html")
