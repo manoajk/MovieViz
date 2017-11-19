@@ -1,26 +1,16 @@
-from flask import g, session, flash
-# For MySQL integration
-from flask.ext.mysql import MySQL
-
-# Needed for MySQL integration
-mysql = MySQL()
-
+import sqlite3
+from flask import g
+from config import Config
+from app import app
 
 def getDB():
-    """Opens a new database connection if there is none yet for the
-    current application context.
-    """
-    if not hasattr(g, 'mysql_db'):
-        g.mysql_db = mysql.connect()
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(Config.DATABASE_PATH)
+    return db
 
-    return g.mysql_db
-
-
-def getCursor():
-    if not hasattr(g, 'mysql_db'):
-        g.mysql_db = mysql.connect()
-
-    if not hasattr(g, 'cursor'):
-        g.cursor = g.mysql_db.cursor()
-
-    return g.cursor
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
