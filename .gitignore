@@ -5,4 +5,4 @@ __pycache__/
 .DS_STORE
 secrets.py
 data/
-*.db
+main.db.zip
