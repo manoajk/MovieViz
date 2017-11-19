@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from requests import get
+from modules import database
 
 def getPageText(url):
     return get(url).text
@@ -32,6 +33,7 @@ def getAllMovieDates():
 	titleIDs = []
 
 	# TODO: Get all movies from sql table
+	
 
 	for titleID in titleIDs:
 		date = getMovieDate(titleID)

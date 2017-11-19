@@ -9,6 +9,14 @@ def getDB():
         db = g._database = sqlite3.connect(Config.DATABASE_PATH)
     return db
 
+def getCursor():
+    db = getDB()
+
+    if not hasattr(g, 'cursor'):
+        g.cursor = db.cursor()
+
+    return g.cursor
+
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
