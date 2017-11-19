@@ -32,24 +32,34 @@ def getMovieMPAARating(titleID):
 def getAllMovieDates():
 	titleIDs = []
 
-	# TODO: Get all movies from sql table
-	
+	# Get all movies from sql table
+	database.getCursor().execute("SELECT `tconst` FROM movie")
+	titleIDs = database.getCursor().fetchall()
 
 	for titleID in titleIDs:
-		date = getMovieDate(titleID)
-		# TODO: Update date column in sql table
+		date = getMovieDate(titleID[0])
+		# Update date column in sql table
+		database.getCursor().execute("UPDATE movie SET `date`=%s WHERE `tconst`=%s", date, titleID[0])
 
-	# TODO: Commit sql changes
+	# Commit sql changes
+	database.getDB().commit()
 
 def getAllMovieRatings():
 	titleIDs = []
 
-	# TODO: Get all movies from sql table
+	# Get all movies from sql table
+	database.getCursor().execute("SELECT `tconst` FROM movie")
+	titleIDs = database.getCursor().fetchall()
 
 	for titleID in titleIDs:
-		date = getMovieMPAARating(titleID)
-		# TODO: Update date column in sql table
+		rating = getMovieMPAARating(titleID[0])
+		# Update date column in sql table
+		database.getCursor().execute("UPDATE movie SET `mpaaRating`=%s WHERE `tconst`=%s", rating, titleID[0])
 
-	# TODO: Commit sql changes
+	# Commit sql changes
+	database.getDB().commit()
 
-print(getMovieDate('tt3521164'))
+print("Getting mpaa ratings")
+getAllMovieRatings()
+print("Getting movie dates")
+getAllMovieDates()
