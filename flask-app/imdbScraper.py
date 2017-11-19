@@ -19,6 +19,15 @@ def getMovieDate(titleID):
 
 	return dateMeta['content']
 
+def getMovieMPAARating(titleID):
+	url = getMovieURL(titleID)
+	html_doc = getPageText(url)
+	soup = BeautifulSoup(html_doc, 'html.parser')
+
+	ratingMeta = soup.find('meta', {'itemprop':'contentRating'})
+
+	return ratingMeta['content']
+
 def getAllMovieDates():
 	titleIDs = []
 
@@ -26,6 +35,17 @@ def getAllMovieDates():
 
 	for titleID in titleIDs:
 		date = getMovieDate(titleID)
+		# TODO: Update date column in sql table
+
+	# TODO: Commit sql changes
+
+def getAllMovieRatings():
+	titleIDs = []
+
+	# TODO: Get all movies from sql table
+
+	for titleID in titleIDs:
+		date = getMovieMPAARating(titleID)
 		# TODO: Update date column in sql table
 
 	# TODO: Commit sql changes
