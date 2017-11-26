@@ -26,3 +26,10 @@ def sana():
 @app.route('/manoaj')
 def manoaj():
 	return render_template("manoaj.html")
+
+
+# def dataset_two():
+# 	data = {
+
+# 	}
+# 	return data
