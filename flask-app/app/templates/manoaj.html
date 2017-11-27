@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<h2>Hi Manoaj</h2>
+<div id="first"><h3>Howdy</h3></div>
+<div id="second"><h3>Howdy</h3></div>
+<div id="third"><h3>Howdy</h3></div>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+<script>
+selectorID = "#first"
+pathToNodes = "static/json/temp_movies.json"
+
+let width = 960,
+	height = 500;
+
+drawNodes(selectorID, pathToNodes);
+
+function drawNodes(selectorID, pathToNodes) {
+	let svg = d3.select(selectorID).append("svg")
+			.attr("width", width)
+			.attr("height", height);
+
+	d3.json(pathToNodes, function(json) {
+		let elem = svg.selectAll("g myCircleText")
+					.data(json.nodes);
+
+		let elemEnter = elem.enter()
+							.append("g");
+							// .attr("transform")
+
+		let circle = elemEnter.append("circle")
+						.attr("cx", function(d) {return d.x})
+						.attr("cy", function(d) {return d.y})
+						.attr("r", function(d) {return d.r})
+						.attr("stroke", "black")
+						.attr("fill", function(d) {return "white"});
+
+		elemEnter.append("text")
+				.attr("dx", function(d) { return -20; })
+				.text(function(d){return d.label;});
+	});
+}
+
+
+</script>
+</body>
+</html>
