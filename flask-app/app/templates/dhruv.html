@@ -1,9 +1,208 @@
 <!DOCTYPE html>
-<html>
-<head>
-	<title></title>
-</head>
+<meta charset="utf-8">
+<script src="../d3.js"></script>
+<style>
+
+path.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+
+circle {
+  fill: #ccc;
+  stroke: #fff;
+  stroke: black;
+  stroke-width: 1.5px;
+}
+
+text {
+  fill: #000;
+  font: 10px sans-serif;
+  pointer-events: none;
+}
+
+.label {
+    font-weight: bold;
+}
+
+div.tooltip {	
+    position: absolute;			
+    text-align: center;	
+    vertical-align: center;		
+    width: auto;					
+    height: auto;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
+}
+
+</style>
 <body>
-<h2>Hi Dhruv</h2>
+<script>
+var width = 960,
+height = 136,
+cellSize = 17;
+
+//console.log(Date(2017, 0, 1));
+
+var formatPercent = d3.format(".1%");
+
+var color = d3.scaleLinear().domain([0, 4]).range(["yellow", "red"]);
+
+var main_svg = d3.select("body")
+	.append("svg")
+	.attr("width", width + 30)
+	.attr("height", height * 18)
+
+var div = d3.select("body").append("div")	
+    .attr("class", "tooltip")				
+    .style("opacity", 0);
+
+var svg = main_svg
+  .selectAll("svg")
+  .data(d3.range(2000, 2018))
+  .enter().append("g")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", function (d, i) {return "translate(" + ((width - cellSize * 53) / 2) + "," + (height*(i+1) - cellSize * 7 - 1) + ")";});
+
+svg.append("text")
+    .attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)")
+    .attr("font-family", "sans-serif")
+    .attr("font-size", 10)
+    .attr("text-anchor", "middle")
+    .text(function(d) { return d; });
+
+var rect = svg.append("g")
+    .attr("fill", "none")
+    .attr("stroke", "#ccc")
+  .selectAll("rect")
+  .data(function(d) { output = d3.timeDays(new Date(d, 0, 1), new Date(d + 1, 0, 1)); return output;})
+  .enter().append("rect")
+    .attr("width", cellSize)
+    .attr("height", cellSize)
+    .attr("x", function(d) { output = d3.timeWeek.count(d3.timeYear(d), d) * cellSize; console.log("Date = " + d + "\nX = " + output); return output;   })
+    .attr("y", function(d) { return d.getDay() * cellSize; })
+   .datum(d3.timeFormat("%Y-%m-%d"));
+
+svg.append("g")
+    .attr("fill", "none")
+    .attr("stroke", "#000")
+  .selectAll("path")
+  .data(function(d) { output = d3.timeMonths(new Date(d, 0, 1), new Date(d + 1, 0, 1)); return output })
+  .enter().append("path")
+    .attr("d", pathMonth);
+
+var timeFormat = d3.timeFormat("%Y-%m-%d")
+
+
+
+var brushCell;
+
+var brush = d3.brush()
+        .extent([[29, 15], [960, height * 18]])
+        .on("start", console.log("started"))
+        .on("brush", function(cell) {e = d3.event.selection; console.log(e); console.log(cell.x)})
+        .on("end", function(d) {console.log("ended")});
+
+// main_svg.append("g")
+//     .attr("class", "brush")
+//     .call(brush);
+
+
+
+
+d3.tsv("diji.tsv", function(error, data) {
+  if (error) throw error;
+
+  dates = []  ;
+  dates_count = {};
+  dates_to_movies = {};
+
+  data.forEach(function(d) {
+            d.releaseDate = new Date(d.releaseDate);
+            d.releaseDate = timeFormat(d.releaseDate);
+            dates.push(d.releaseDate);
+  			dates_count[d.releaseDate] = dates_count[d.releaseDate] ? dates_count[d.releaseDate] + 1 : 1;
+  			if (dates_to_movies[d.releaseDate]) {
+  				dates_to_movies[d.releaseDate].push(d);
+  			} else {
+  				dates_to_movies[d.releaseDate] = [d];
+  			} 
+  			
+        });
+
+  rect.filter(function(d) { output =  dates.indexOf(d) > -1; return output;})
+		.attr("fill", function(d) {return color(dates_count[d]);})
+		.on("mouseover", function(d) {		
+			div.transition()		
+			.duration(200)		
+			.style("opacity", .9);		
+			div.html("Date: " + d + "\n Movies: " + dates_to_movies[d].map(function(a) {return a.primaryTitle;}).join("; "))	
+			.style("left", (d3.event.pageX) + "px")		
+			.style("top", (d3.event.pageY - 28) + "px");	
+		})					
+		.on("mouseout", function(d) {		
+			div.transition()		
+			.duration(500)		
+			.style("opacity", 0);	
+		});
+});
+
+function pathMonth(t0) {
+  //console.log(t0)
+  var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+      d0 = t0.getDay(), w0 = d3.timeWeek.count(d3.timeYear(t0), t0),
+      d1 = t1.getDay(), w1 = d3.timeWeek.count(d3.timeYear(t1), t1);
+  return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize
+      + "H" + w0 * cellSize + "V" + 7 * cellSize
+      + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize
+      + "H" + (w1 + 1) * cellSize + "V" + 0
+      + "H" + (w0 + 1) * cellSize + "Z";
+}
+
+
+
+function brushstart(cell) {
+    // cell is the SplomCell object
+
+    // Check if this g element is different than the previous brush
+    if(brushCell !== this) {
+
+        // Clear the old brush
+        brush.move(d3.select(brushCell), null);
+
+        // Update the global scales for the subsequent brushmove events
+        xScale.domain(extentByAttribute[cell.x]);
+        yScale.domain(extentByAttribute[cell.y]);
+
+        // Save the state of this g element as having an active brush
+        brushCell = this;
+    }
+}
+
+
+function brushMove() {
+	e = d3.event.selection;
+	// if (e) {
+	// 	if (e[0][0] < )
+	// }
+}
+
+
+Date.prototype.isSameDateAs = function(pDate) {
+  return (
+    this.getFullYear() === pDate.getFullYear() &&
+    this.getMonth() === pDate.getMonth() &&
+    this.getDate() === pDate.getDate()
+  );
+}
+
+</script>
 </body>
 </html>
