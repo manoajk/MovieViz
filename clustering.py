@@ -14,7 +14,10 @@ from matplotlib import pylab as pl
 dtype = {"tconst":str, "titleType":str, "primaryTitle":str, "originalTitle":str, "isAdult": str, "startYear":str, "endYear":str, "runtimeMinutes": str, "genres":str}
 movieDataFrame = read_csv("data/title.basics.tsv", sep="\t", header=0, dtype=dtype, na_values="\\N")
 movieDataFrame = movieDataFrame[movieDataFrame.titleType == "movie"][movieDataFrame.startYear >= "2000"]
-genres = np.random.choice(np.asarray(movieDataFrame.pop('genres')), 2000)
+movies = np.random.choice(np.asarray(movieDataFrame['tconst']), 2000)
+print(movies)
+print(len(movies))
+genres = np.asarray(movieDataFrame.loc[movieDataFrame['tconst'].isin(movies)].pop('genres'))
 print(len(genres))
 
 genresArray = []
