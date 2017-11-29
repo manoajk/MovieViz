@@ -34,6 +34,32 @@ def getCursor():
 
     return g.cursor
 
+def getAllMovies():
+    getCursor().execute("SELECT * FROM movies")
+    movies = getCursor().fetchall()
+
+    movieList = []
+    for movie in movies:
+        movieDict = {}
+        movieDict['budget'] = movie[4]
+
+        genres = movie[9].split(',')
+        movieDict['genre1'] = genres[0] if len(genres) > 0 else ""
+        movieDict['genre2'] = genres[1] if len(genres) > 1 else ""
+        movieDict['genre3'] = genres[2] if len(genres) > 2 else ""
+        movieDict['primaryTitle'] = movie[2]
+        movieDict['revenue'] = movie[14]
+        movieDict['runtimeMinutes'] = movie[8]
+        movieDict['startYear'] = movie[12]
+        movieDict['day'] = movie[11]
+        movieDict['month'] = movie[10]
+        movieDict['tconst'] = movie[0]
+
+        movieList.append(movieDict)
+
+    return movieList
+
+
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)

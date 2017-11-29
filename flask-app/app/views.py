@@ -23,6 +23,7 @@ def sahaj():
 
 @app.route('/sana')
 def sana():
+
 	return render_template("sana.html")
 
 @app.route('/manoaj')

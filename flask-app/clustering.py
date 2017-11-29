@@ -10,6 +10,7 @@ from sklearn.decomposition import PCA
 from sklearn import metrics
 from scipy.stats import kurtosis,kurtosistest
 from matplotlib import pylab as pl
+from modules import database as db
 
 dtype = {"tconst":str, "titleType":str, "primaryTitle":str, "originalTitle":str, "isAdult": str, "startYear":str, "endYear":str, "runtimeMinutes": str, "genres":str}
 movieDataFrame = read_csv("data/title.basics.tsv", sep="\t", header=0, dtype=dtype, na_values="\\N")
@@ -35,8 +36,24 @@ KMeansPlusLabels = None
 EMRandLabels = None
 EMKMeansLabels = None
 
+def cluster():
+	db.getCursor().execute("SELECT `tconst`,`genres` FROM movie")
+	movies = db.getCursor().fetchall()
+
+	clusterDict = {}
+
+	genres= []
+	movieIds = []
+	for movie in movies:
+		movieIds.append(movie[0])
+		if movie[1] and movie[1] != "\N":
+			g = movie[1].split(',')
+
+
+
+
 ## CLUSTERING -----------------------------------------------------------------------------------------------------
-def cluster(sampleData):
+def clusterTest(sampleData):
 	max_num_clusters = 5
 
 	## KMEANS: RANDOM INITIALIZATION ------------------------------
@@ -189,7 +206,7 @@ genrePCA = PCA(n_components=2)
 genreTransformed = genrePCA.fit_transform(encoded)
 
 print('Clustering')
-cluster(encoded)
+clusterTest(encoded)
 print('Done Clustering')
 
 transformedLabels = k_means(genreTransformed, n_clusters=5, init='random', return_n_iter=True)[1]
