@@ -2,51 +2,392 @@
 <html>
 <head>
 	<title></title>
+	<style>
+
+	.node circle {
+	  cursor: pointer;
+	  stroke: #3182bd;
+	  stroke-width: 1.5px;
+	}
+
+	.node text {
+	  font: 10px sans-serif;
+	  pointer-events: none;
+	  text-anchor: middle;
+	}
+
+	line.link {
+	  fill: none;
+	  stroke: #9ecae1;
+	  stroke-width: 1.5px;
+	}
+
+	div.tooltip {
+    position: absolute;
+    text-align: center;
+/*    width: 60px;
+    height: 28px;*/
+    padding: 10px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+	}
+
+	</style>
 </head>
 <body>
 <h2>Hi Manoaj</h2>
-<div id="first"><h3>Howdy</h3></div>
-<div id="second"><h3>Howdy</h3></div>
-<div id="third"><h3>Howdy</h3></div>
-<script src="https://d3js.org/d3.v3.min.js"></script>
+<div id="first">
+	<h3>One</h3>
+</div>
+<div id="second">
+	<h3>Two</h3>
+</div>
+<div id="third">
+	<h3>Three</h3>
+</div>
+<div id="fourth">
+	<h3>Four</h3>
+</div>
+
+<!-- <script src="https://d3js.org/d3.v3.min.js"></script> -->
+<script src="static/js/d3.v3.min.js"></script>
+<script src="static/js/d3.tip.v0.6.3.js"></script>
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
 
 <script>
-selectorID = "#first"
-pathToNodes = "static/json/temp_movies.json"
+var w = 1280,
+    h = 800,
+    node,
+    link,
+    root;
 
-let width = 960,
-	height = 500;
+// var tip = d3.tip()
+//   .attr('class', 'd3-tip')
+//   .offset([-10,0])
+//   .html(function(d) { return 5; })
 
-drawNodes(selectorID, pathToNodes);
+// console.log(tip);
+// console.log("TIP");
 
-function drawNodes(selectorID, pathToNodes) {
-	let svg = d3.select(selectorID).append("svg")
-			.attr("width", width)
-			.attr("height", height);
+var force = d3.layout.force()
+    .on("tick", tick)
+    .charge(function(d) { return d._children ? -d.size / 100 : -30; })
+    .linkDistance(function(d) { return d.target._children ? 80 : 30; })
+    .size([w, h - 160]);
 
-	d3.json(pathToNodes, function(json) {
-		let elem = svg.selectAll("g myCircleText")
-					.data(json.nodes);
+var vis = d3.select("#fourth").append("svg:svg")
+    .attr("width", w)
+    .attr("height", h);
 
-		let elemEnter = elem.enter()
-							.append("g");
-							// .attr("transform")
+d3.json("static/json/cluster_collapse.json", function(json) {
+  root = json;
+  root.fixed = true;
+  root.x = w / 2;
+  root.y = h / 2 - 80;
+  update();
+});
 
-		let circle = elemEnter.append("circle")
-						.attr("cx", function(d) {return d.x})
-						.attr("cy", function(d) {return d.y})
-						.attr("r", function(d) {return d.r})
-						.attr("stroke", "black")
-						.attr("fill", function(d) {return "white"});
+function update() {
+  var nodes = flatten(root),
+      links = d3.layout.tree().links(nodes);
 
-		elemEnter.append("text")
-				.attr("dx", function(d) { return -20; })
-				.text(function(d){return d.label;});
-	});
+  // Restart the force layout.
+  force
+      .nodes(nodes)
+      .links(links)
+      .start();
+
+  // Update the links…
+  link = vis.selectAll("line.link")
+      .data(links, function(d) { return d.target.id; });
+
+  // Enter any new links.
+  link.enter().insert("svg:line", ".node")
+      .attr("class", "link")
+      .attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; })
+      // .on("mouseover", tip.show)
+      // .on("mouseout", tip.hide);
+
+  // Exit any old links.
+  link.exit().remove();
+
+  // Update the nodes…
+  node = vis.selectAll("circle.node")
+      .data(nodes, function(d) { return d.id; })
+      .style("fill", color);
+
+  node.transition()
+      .attr("r", function(d) { return d.children ? 4.5 : Math.sqrt(d.size) / 10; });
+
+  // Enter any new nodes.
+  // var nodeEnter = node.enter().append("svg:circle")
+  // 					  .append("g")
+		// 		      .attr("class", "node")
+		// 		      .attr("cx", function(d) { return d.x; })
+		// 		      .attr("cy", function(d) { return d.y; })
+		// 		      .attr("r", function(d) { return d.children ? 4.5 : Math.sqrt(d.size) / 10; })
+		// 		      .append("text")
+		// 		      .attr("dy", ".35em")
+		// 		      .text(function(d) { return d.name; })
+		// 		      .style("fill", color)
+		// 		      .on("click", click)
+		// 		      .call(force.drag);
+
+
+  // // Enter any new nodes.
+  var div = d3.select("#fourth").append("div")	
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+  var nodeEnter = node.enter().append("svg:circle")
+      .attr("class", "node")
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .attr("x", function(d) { return d.x; })
+      .attr("y", function(d) { return d.y; })
+      .attr("r", function(d) { return d.children ? 4.5 : Math.sqrt(d.size) / 10; })
+      .style("fill", color)
+      .on("click", click)
+      .on("mouseover", function(d) {		
+          div.transition()
+              .duration(200)		
+              .style("opacity", .9);		
+          div.html(d.name)	
+              .style("left", (d3.event.pageX) + "px")		
+              .style("top", (d3.event.pageY - 28) + "px");	
+          })					
+      .on("mouseout", function(d) {		
+          div.transition()		
+              .duration(500)		
+              .style("opacity", 0);	
+      })
+      // .on("mouseover", tip.show)
+      // .on("mouseout", tip.hide)
+      .call(force.drag);
+
+//   var nodeEnter = node.enter().append("g")
+//       .attr("class", "node")
+//       .on("click", click)
+//       .call(force.drag);
+
+//   nodeEnter.append("circle")
+//       .attr("r", function(d) { return Math.sqrt(d.size) / 10 || 4.5; });
+
+  nodeEnter.append("text")
+      .attr("dy", ".35em")
+      .text(function(d) { return d.name; });
+
+//   node.select("circle")
+//       .style("fill", color);
+// }
+
+  // Exit any old nodes.
+  node.exit().remove();
 }
+
+function tick() {
+  link.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+
+  node.attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; });
+}
+
+// Color leaf nodes orange, and packages white or blue.
+function color(d) {
+  return d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c";
+}
+
+// Toggle children on click.
+function click(d) {
+  if (d.children) {
+    d._children = d.children;
+    d.children = null;
+  } else {
+    d.children = d._children;
+    d._children = null;
+  }
+  update();
+}
+
+// Returns a list of all nodes under the root.
+function flatten(root) {
+  var nodes = [], i = 0;
+
+  function recurse(node) {
+    if (node.children) node.size = node.children.reduce(function(p, v) { return p + recurse(v); }, 0);
+    if (!node.id) node.id = ++i;
+    nodes.push(node);
+    return node.size;
+  }
+
+  root.size = recurse(root);
+  return nodes;
+}
+
+
+
+// var widthW = 960,
+//     heightH = 500,
+//     root;
+
+// var force = d3.layout.force()
+//     .linkDistance(80)
+//     .charge(-120)
+//     .gravity(.05)
+//     .size([widthW, heightH])
+//     .on("tick", tick);
+
+// var svg = d3.select("#fourth").append("svg")
+//     .attr("width", widthW)
+//     .attr("height", heightH);
+
+// var link = svg.selectAll(".link"),
+//     node = svg.selectAll(".node");
+
+// d3.json("static/json/cluster_collapse.json", function(error, json) {
+//   if (error) throw error;
+
+//   root = json;
+//   update();
+// });
+
+// function update() {
+//   var nodes = flatten(root),
+//       links = d3.layout.tree().links(nodes);
+
+//   // Restart the force layout.
+//   force
+//       .nodes(nodes)
+//       .links(links)
+//       .start();
+
+//   // Update links.
+//   link = link.data(links, function(d) { return d.target.id; });
+
+//   link.exit().remove();
+
+//   link.enter().insert("line", ".node")
+//       .attr("class", "link");
+
+//   // Update nodes.
+//   node = node.data(nodes, function(d) { return d.id; });
+
+//   node.exit().remove();
+
+//   var nodeEnter = node.enter().append("g")
+//       .attr("class", "node")
+//       .on("click", click)
+//       .call(force.drag);
+
+//   nodeEnter.append("circle")
+//       .attr("r", function(d) { return Math.sqrt(d.size) / 10 || 4.5; });
+
+//   nodeEnter.append("text")
+//       .attr("dy", ".35em")
+//       .text(function(d) { return d.name; });
+
+//   node.select("circle")
+//       .style("fill", color);
+// }
+
+// function tick() {
+//   link.attr("x1", function(d) { return d.source.x; })
+//       .attr("y1", function(d) { return d.source.y; })
+//       .attr("x2", function(d) { return d.target.x; })
+//       .attr("y2", function(d) { return d.target.y; });
+
+//   node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+// }
+
+// function color(d) {
+//   return d._children ? "#3182bd" // collapsed package
+//       : d.children ? "#c6dbef" // expanded package
+//       : "#fd8d3c"; // leaf node
+// }
+
+// // Toggle children on click.
+// function click(d) {
+//   if (d3.event.defaultPrevented) return; // ignore drag
+//   if (d.children) {
+//     d._children = d.children;
+//     d.children = null;
+//   } else {
+//     d.children = d._children;
+//     d._children = null;
+//   }
+//   update();
+// }
+
+// // Returns a list of all nodes under the root.
+// function flatten(root) {
+//   var nodes = [], i = 0;
+
+//   function recurse(node) {
+//     if (node.children) node.children.forEach(recurse);
+//     if (!node.id) node.id = ++i;
+//     nodes.push(node);
+//   }
+
+//   recurse(root);
+//   return nodes;
+// }
+
+</script>
+
+
+
+<script>
+// let pathToNodesFirst = "static/json/temp_movies.json",
+// 	pathToNodesSecond = "static/json/temp_movies1.json",
+// 	pathToNodesThird = "static/json/temp_movies2.json",
+// 	selectorFirst = "#first",
+// 	selectorSecond = "#second",
+// 	selectorThird = "#third";
+
+
+// let width = 960,
+// 	height = 500;
+
+// // drawNodes(selectorFirst, pathToNodesFirst);
+// // drawNodes(selectorSecond, pathToNodesSecond);
+// // drawNodes(selectorThird, pathToNodesThird);
+
+// function drawNodes(selectorID, pathToNodes) {
+// 	let svg = d3.select(selectorID).append("svg")
+// 			.attr("width", width)
+// 			.attr("height", height);
+
+// 	d3.json(pathToNodes, function(json) {
+// 		let elem = svg.selectAll("g myCircleText")
+// 					.data(json.nodes);
+
+// 		let elemEnter = elem.enter()
+// 							.append("g");
+// 							// .attr("transform")
+
+// 		let circle = elemEnter.append("circle")
+// 						.attr("cx", function(d) {return d.x})
+// 						.attr("cy", function(d) {return d.y})
+// 						.attr("r", function(d) {return d.r})
+// 						.attr("stroke", "black")
+// 						.attr("fill", function(d) {return d.color});
+
+// 		elemEnter.append("text")
+// 				.attr("dx", function(d) { return -20; })
+// 				.text(function(d){return d.label;});
+// 	});
+// }
 
 
 </script>
