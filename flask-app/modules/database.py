@@ -2,6 +2,7 @@ import sqlite3
 from flask import g
 from config import Config
 from app import app
+from collections import OrderedDict
 
 """
 HOW TO USE:
@@ -43,10 +44,15 @@ def getAllMovies():
         movieDict = {}
         movieDict['budget'] = movie[4]
 
-        genres = movie[9].split(',')
-        movieDict['genre1'] = genres[0] if len(genres) > 0 else ""
-        movieDict['genre2'] = genres[1] if len(genres) > 1 else ""
-        movieDict['genre3'] = genres[2] if len(genres) > 2 else ""
+        genresRaw = movie[9].split(',')
+        genres = []
+        ignoreGenres = ["Adult"]
+        for g in genresRaw:
+            if g not in ignoreGenres:
+                genres.append(g)
+        movieDict['genre1'] = genres[0] if len(genres) > 0 else ''
+        movieDict['genre2'] = genres[1] if len(genres) > 1 else ''
+        movieDict['genre3'] = genres[2] if len(genres) > 2 else ''
         movieDict['primaryTitle'] = movie[2]
         movieDict['revenue'] = movie[14]
         movieDict['runtimeMinutes'] = movie[8]
@@ -54,8 +60,19 @@ def getAllMovies():
         movieDict['day'] = movie[11]
         movieDict['month'] = movie[10]
         movieDict['tconst'] = movie[0]
+        movieDict['wins'] = movie[15]
+        movieDict['nominations'] = movie[16]
 
-        movieList.append(movieDict)
+        for key, value in movieDict.items():
+            if value is None and isinstance(value, str):
+                movieDict[key] = ''
+            elif value is None:
+                movieDict[key] = 0
+
+        print(movieDict)
+
+        if movieDict['genre1'] != '':
+            movieList.append(movieDict)
 
     return movieList
 

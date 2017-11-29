@@ -1,3 +1,4 @@
+    
 /* bubbleChart creation function. Returns a function that will
  * instantiate a new bubble chart given a DOM element to display
  * it in and a dataset to visualize.
@@ -26,7 +27,7 @@ function bubbleChart() {
 
   var genreCenters = {
     Thriller: {x: width/5, y:height/5},
-    SciFi: {x: 2*width/5, y:height/5},
+    'Sci-Fi': {x: 2*width/5, y:height/5},
     Romance: {x: 3*width/5, y:height/5},
     Mystery: {x: 4*width/5, y:height/5},
     Horror: {x: width/5, y: 2*height/5},
@@ -38,14 +39,14 @@ function bubbleChart() {
     Biography: {x: 3*width/5, y: 3*height/5},
     Adventure: {x: 4*width/5, y: 3*height/5},
     Action: {x: width/5, y: 4*height/5},
-    Adult: {x: 2*width/5, y: 4*height/5},
+    Western: {x: 2*width/5, y: 4*height/5},
     Animation: {x: 3*width/5, y: 4*height/5},
     Family: {x: 4*width/5, y: 4*height/5}
   };
 
   var genreTitlePositions = {
     Thriller: {x: 353, y:82},
-    SciFi: {x: 802, y:82},
+    'Sci-Fi': {x: 802, y:82},
     Romance: {x: 1291, y:72},
     Mystery: {x: 1776, y:82},
     Horror: {x: 353, y: 345},
@@ -57,7 +58,7 @@ function bubbleChart() {
     Biography: {x: 1291, y: 800},
     Adventure: {x: 1776, y: 675},
     Action: {x: 353, y: 1010},
-    Adult: {x: 802, y: 1210},
+    Western: {x: 802, y: 1210},
     Animation: {x: 1291, y: 1210},
     Family: {x: 1776, y: 1210}
   };
@@ -132,9 +133,9 @@ function bubbleChart() {
   function createNodes(rawData) {
     // Use the max total_amount in the data as the max in the scale's domain
     // note we have to ensure the total_amount is a number.
-    var maxAmount = d3.max(rawData, function (d) { return +d.awardNominations; });
+    var maxAmount = d3.max(rawData, function (d) { return +(d.wins + 0.5*d.nominations); });
 
-    var minAmount = d3.min(rawData, function(d) {return +d.awardNominations; });
+    var minAmount = d3.min(rawData, function(d) {return +(d.wins + 0.5*d.nominations); });
 
     var maxAmount2 = d3.max(rawData, function (d) { return +d.revenue; });
 
@@ -151,7 +152,7 @@ function bubbleChart() {
 
     var fillColor = d3.scaleLinear()
     .domain([minAmount, maxAmount])
-    .range(['yellow', 'red']);
+    .range(['orange',  'purple']);
 
     // Use map() to convert raw data into node data.
     // Checkout http://learnjsdata.com/ for more on
@@ -163,9 +164,10 @@ function bubbleChart() {
         radius: radiusScale(+d.revenue),
         runtime: +d.runtimeMinutes,
         name: d.primaryTitle,
-        color: fillColor(+d.awardNominations),
+        color: fillColor(+ (d.wins + 0.5*d.nominations)),
         genre1: d.genre1,
-        awardNominations: +d.awardNominations,
+        wins: +d.wins,
+        nominations: +d.nominations,
         budget: +d.budget,
         revenue: +d.revenue,
         x: Math.random() * 900,
@@ -194,6 +196,7 @@ function bubbleChart() {
    */
   var chart = function chart(selector, rawData) {
     // convert raw data into nodes data
+    console.log(rawData)
     nodes = createNodes(rawData);
 
     // Create a SVG element inside the provided selector
@@ -421,6 +424,7 @@ function display(error, data) {
     console.log(error);
   }
 
+  console.log(data)
   myBubbleChart('#vis', data);
 }
 
@@ -466,7 +470,13 @@ function addCommas(nStr) {
 }
 
 // Load the data.
-d3.csv('data/movies.csv', display);
+// d3.csv('data/movies.csv', display);
+$.getJSON('/getAllMovies', function(data, error) {
 
-// setup the buttons.
-setupButtons();
+  display(error, data);
+  // setup the buttons.
+  setupButtons();
+});
+
+
+

@@ -29,37 +29,81 @@ def getMovieMPAARating(titleID):
 
 	return ratingMeta['content']
 
+def getMovieAwards(titleID):
+	url = getMovieURL(titleID)
+	html_doc = getPageText(url)
+	soup = BeautifulSoup(html_doc, 'html.parser')
+
+	awardsSpan = soup.findAll('span', {'itemprop':'awards'})
+	numWins = 0
+	numNominations = 0
+	if len(awardsSpan) == 2:
+		awardsSpan = awardsSpan[1]
+	elif len(awardsSpan) == 1:
+		awardsSpan = awardsSpan[0]
+	else:
+		awardsSpan = None
+
+	words = awardsSpan.getText().split(' ') if awardsSpan else []
+	print(words)
+	for i,word in enumerate(words):
+		if 'win' in word:
+			numWins = int(words[i-1])
+		elif 'nomination' in word:
+			numNominations = int(words[i-1])
+
+	return (numWins, numNominations)
+
+
 def getAllMovieDates():
 	titleIDs = []
 
 	# Get all movies from sql table
-	database.getCursor().execute("SELECT `tconst` FROM movie")
+	database.getCursor().execute("SELECT `tconst` FROM movies")
 	titleIDs = database.getCursor().fetchall()
 
 	for titleID in titleIDs:
 		date = getMovieDate(titleID[0])
 		# Update date column in sql table
-		database.getCursor().execute("UPDATE movie SET `date`=%s WHERE `tconst`=%s", date, titleID[0])
+		database.getCursor().execute("UPDATE movies SET `date`=? WHERE `tconst`=?", [date, titleID[0]])
 
-	# Commit sql changes
-	database.getDB().commit()
+		# Commit sql changes
+		database.getDB().commit()
 
 def getAllMovieRatings():
 	titleIDs = []
 
 	# Get all movies from sql table
-	database.getCursor().execute("SELECT `tconst` FROM movie")
+	database.getCursor().execute("SELECT `tconst` FROM movies")
 	titleIDs = database.getCursor().fetchall()
 
 	for titleID in titleIDs:
 		rating = getMovieMPAARating(titleID[0])
 		# Update date column in sql table
-		database.getCursor().execute("UPDATE movie SET `mpaaRating`=%s WHERE `tconst`=%s", rating, titleID[0])
+		database.getCursor().execute("UPDATE movies SET `mpaaRating`=? WHERE `tconst`=?", [rating, titleID[0]])
 
-	# Commit sql changes
-	database.getDB().commit()
+		# Commit sql changes
+		database.getDB().commit()
 
-print("Getting mpaa ratings")
-getAllMovieRatings()
-print("Getting movie dates")
-getAllMovieDates()
+def getAllMovieAwards():
+	titleIDS = []
+
+	# Get all movies from sql table
+	database.getCursor().execute("SELECT `tconst` FROM movies")
+	titleIDs = database.getCursor().fetchall()
+
+	for titleID in titleIDs:
+		print(titleID)
+		awards = getMovieAwards(titleID[0])
+		# Update awards columns in sql table
+		database.getCursor().execute("UPDATE movies SET `wins`=?,`nominations`=? WHERE `tconst`=?", [awards[0], awards[1], titleID[0]])
+
+		# Commit sql changes
+		database.getDB().commit()
+
+def scrape():
+	getAllMovieAwards()
+# print("Getting mpaa ratings")
+# getAllMovieRatings()
+# print("Getting movie dates")
+# getAllMovieDates()
