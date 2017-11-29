@@ -12,24 +12,21 @@ from scipy.stats import kurtosis,kurtosistest
 from matplotlib import pylab as pl
 from modules import database as db
 
-dtype = {"tconst":str, "titleType":str, "primaryTitle":str, "originalTitle":str, "isAdult": str, "startYear":str, "endYear":str, "runtimeMinutes": str, "genres":str}
-movieDataFrame = read_csv("data/title.basics.tsv", sep="\t", header=0, dtype=dtype, na_values="\\N")
-movieDataFrame = movieDataFrame[movieDataFrame.titleType == "movie"][movieDataFrame.startYear >= "2000"]
-movies = np.random.choice(np.asarray(movieDataFrame['tconst']), 2000)
-print(movies)
-print(len(movies))
-genres = np.asarray(movieDataFrame.loc[movieDataFrame['tconst'].isin(movies)].pop('genres'))
-print(len(genres))
+# dtype = {"tconst":str, "titleType":str, "primaryTitle":str, "originalTitle":str, "isAdult": str, "startYear":str, "endYear":str, "runtimeMinutes": str, "genres":str}
+# movieDataFrame = read_csv("data/title.basics.tsv", sep="\t", header=0, dtype=dtype, na_values="\\N")
+# movieDataFrame = movieDataFrame[movieDataFrame.titleType == "movie"][movieDataFrame.startYear >= "2000"]
+# movies = np.random.choice(np.asarray(movieDataFrame['tconst']), 2000)
+# print(movies)
+# print(len(movies))
+# genres = np.asarray(movieDataFrame.loc[movieDataFrame['tconst'].isin(movies)].pop('genres'))
+# print(len(genres))
 
-genresArray = []
-for g in genres:
-	if type(g) == str:
-		genresArray += [g.split(",")]
-	else:
-		genresArray += [[]]
-
-mlb = MultiLabelBinarizer()
-encoded = mlb.fit_transform(genresArray)
+# genresArray = []
+# for g in genres:
+# 	if type(g) == str:
+# 		genresArray += [g.split(",")]
+# 	else:
+# 		genresArray += [[]]
 
 KMeansRandLabels = None
 KMeansPlusLabels = None
@@ -37,7 +34,7 @@ EMRandLabels = None
 EMKMeansLabels = None
 
 def cluster():
-	db.getCursor().execute("SELECT `tconst`,`genres` FROM movie")
+	db.getCursor().execute("SELECT `tconst`,`genres` FROM movies")
 	movies = db.getCursor().fetchall()
 
 	clusterDict = {}
@@ -46,8 +43,58 @@ def cluster():
 	movieIds = []
 	for movie in movies:
 		movieIds.append(movie[0])
-		if movie[1] and movie[1] != "\N":
-			g = movie[1].split(',')
+		genres.append(movie[1].split(','))
+
+	mlb = MultiLabelBinarizer()
+	encoded = mlb.fit_transform(genres)
+
+	genrePCA = PCA(n_components=2)
+	genreTransformed = genrePCA.fit_transform(encoded)
+
+	print('Clustering')
+
+	results = k_means(encoded, n_clusters=5, init='random', return_n_iter=True)
+	KMeansRandLabels = results[1]
+	transformedResults = k_means(genreTransformed, n_clusters=5, init='random', return_n_iter=True)
+	transformedLabels = transformedResults[1]
+	transformedClusters = transformedResults[0]
+
+	print('Done Clustering')
+
+	clusters = {}
+
+	for i,label in enumerate(transformedLabels):
+		if str(label) in clusters:
+			dataDict = {}
+			dataDict['x'] = genreTransformed[i, 0]
+			dataDict['y'] = genreTransformed[i, 1]
+			dataDict['label'] = str(label)
+			dataDict['movieID'] = movieIds[i]
+			clusters[str(label)]['movies'][movieIds[i]] = dataDict
+		else:
+			dataDict = {}
+			dataDict['x'] = genreTransformed[i, 0]
+			dataDict['y'] = genreTransformed[i, 1]
+			dataDict['label'] = str(label)
+			dataDict['movieID'] = movieIds[i]
+			clusters[str(label)] = {}
+			clusters[str(label)]['movies'] = {movieIds[i]:dataDict}
+
+	print(transformedClusters)
+	for i,cluster in enumerate(transformedClusters):
+		print(i)
+		print(cluster)
+		clusters[str(i)]['x'] = cluster[0]
+		clusters[str(i)]['y'] = cluster[1]
+
+	return {"clusters":clusters}
+
+	# pl.figure("K-Means: Random Init")
+	# pl.scatter(genreTransformed[:, 0], genreTransformed[:, 1], c=KMeansLabels)
+
+	# pl.figure("K-Means: Random Init Transformed")
+	# pl.scatter(genreTransformed[:, 0], genreTransformed[:, 1], c=transformedLabels)
+	# pl.show()
 
 
 
@@ -202,19 +249,4 @@ def clusterTest(sampleData):
 	# estimator.fit(sampleData)
 	# EMKMeansLabels = estimator.predict(sampleData)
 
-genrePCA = PCA(n_components=2)
-genreTransformed = genrePCA.fit_transform(encoded)
-
-print('Clustering')
-clusterTest(encoded)
-print('Done Clustering')
-
-transformedLabels = k_means(genreTransformed, n_clusters=5, init='random', return_n_iter=True)[1]
-
-pl.figure("K-Means: Random Init")
-pl.scatter(genreTransformed[:, 0], genreTransformed[:, 1], c=KMeansRandLabels)
-
-pl.figure("K-Means: Random Init Transformed")
-pl.scatter(genreTransformed[:, 0], genreTransformed[:, 1], c=transformedLabels)
-pl.show()
 
