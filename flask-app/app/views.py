@@ -13,11 +13,13 @@ def miserables():
 
 @app.route('/dhruv')
 def dhruv():
+
 	return render_template("dhruv.html")
 
 @app.route('/sahaj')
 def sahaj():
-	return render_template("sahaj.html")
+	attributes = ['Genre', 'Month of Release', 'Year of Release']
+	return render_template("sahaj.html",attributes=attributes)
 
 @app.route('/sana')
 def sana():
@@ -27,7 +29,9 @@ def sana():
 def manoaj():
 	return render_template("manoaj.html")
 
-
+@app.route('/cluster')
+def cluster():
+	return clustering()
 # def dataset_two():
 # 	data = {
 
