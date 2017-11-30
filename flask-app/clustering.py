@@ -61,24 +61,39 @@ def cluster():
 
 	print('Done Clustering')
 
+	output_list = []
+	output_dict = {"name": "All Movies"}
 	clusters = {}
 
 	for i,label in enumerate(transformedLabels):
+		size = float(label) if not np.isnan(float(label)) else 0
 		if str(label) in clusters:
 			dataDict = {}
 			dataDict['x'] = genreTransformed[i, 0]
 			dataDict['y'] = genreTransformed[i, 1]
-			dataDict['label'] = str(label)
+			dataDict['name'] = str(label)
 			dataDict['movieID'] = movieIds[i]
-			clusters[str(label)]['movies'][movieIds[i]] = dataDict
+			dataDict['size'] = size + 0.5
+			clusters[str(label)]['children'].append(dataDict)
+
+			# newDict = {movieIds[i] : dataDict}
+			# # clusters[str(label)]['children'].append(newDict)
+			# # # clusters[str(label)]['children'][movieIds[i]] = dataDict
 		else:
 			dataDict = {}
+			print("label", str(label))
 			dataDict['x'] = genreTransformed[i, 0]
 			dataDict['y'] = genreTransformed[i, 1]
-			dataDict['label'] = str(label)
+			dataDict['name'] = str(label)
 			dataDict['movieID'] = movieIds[i]
-			clusters[str(label)] = {}
-			clusters[str(label)]['movies'] = {movieIds[i]:dataDict}
+			dataDict['size'] = size + 0.5
+			clusters[str(label)] = {"name": str(label)}
+			# newDict = {movieIds[i] : dataDict}
+			clusters[str(label)]['children'] = []
+			clusters[str(label)]['children'].append(dataDict)
+			
+			print("List", clusters[str(label)]['children'])
+
 
 	print(transformedClusters)
 	for i,cluster in enumerate(transformedClusters):
@@ -87,7 +102,15 @@ def cluster():
 		clusters[str(i)]['x'] = cluster[0]
 		clusters[str(i)]['y'] = cluster[1]
 
-	return {"clusters":clusters}
+	cluster_list = []
+	for cluster_key in clusters:
+		# print("CLUSTER_MANOAJ", cluster, tuple(clusters[cluster_key]))
+		# print("CLUSTER_MANOAJ", type(cluster), type(clusters[cluster_key]))
+		cluster_list.append({str(cluster): tuple(clusters[cluster_key])})
+	output_dict["children"] = cluster_list
+	output_list.append(output_dict)
+	output = [{"name": "flareAnalytics", "children": output_list}]
+	return output
 
 	# pl.figure("K-Means: Random Init")
 	# pl.scatter(genreTransformed[:, 0], genreTransformed[:, 1], c=KMeansLabels)

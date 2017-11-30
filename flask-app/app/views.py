@@ -58,6 +58,8 @@ def imdbScraper():
 @app.route('/cluster')
 def cluster():
 	clusters = clustering.cluster()
+	# print(clusters)
+	# print("CLUSTERS")
 	clusterData = json.dumps(clusters)
 	return clusterData
 # def dataset_two():
