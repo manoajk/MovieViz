@@ -20,11 +20,11 @@ function bubbleChart() {
   // on which view mode is selected.
   var center = { x: width / 2, y: height / 2 };
 
-  var yearCenters = {
-    2005: { x: width / 3, y: height / 2 },
-    2010: { x: width / 2, y: height / 2 },
-    2016: { x: 2 * width / 3, y: height / 2 }
-  };
+  // var yearCenters = {
+  //   2005: { x: width / 3, y: height / 2 },
+  //   2010: { x: width / 2, y: height / 2 },
+  //   2016: { x: 2 * width / 3, y: height / 2 }
+  // };
 
   var genreCenters = {
     Thriller: {x: width/5, y:height/5},
@@ -46,22 +46,61 @@ function bubbleChart() {
   };
 
   var genreTitlePositions = {
-    Thriller: {x: 353, y:82},
-    'Sci-Fi': {x: 802, y:82},
-    Romance: {x: 1291, y:72},
-    Mystery: {x: 1776, y:82},
-    Horror: {x: 353, y: 345},
-    Fantasy: {x: 802, y: 355},
-    Drama: {x: 1291, y: 278},
-    Documentary: {x: 1776, y: 355},
-    Crime: {x: 353, y: 666},
-    Comedy: {x: 802, y: 603},
-    Biography: {x: 1291, y: 800},
-    Adventure: {x: 1776, y: 675},
+    Thriller: {x: 353, y:182},
+    'Sci-Fi': {x: 802, y:182},
+    Romance: {x: 1291, y:173},
+    Mystery: {x: 1726, y:202},
+    Horror: {x: 353, y: 405},
+    Fantasy: {x: 802, y: 455},
+    Drama: {x: 1291, y: 411},
+    Documentary: {x: 1726, y: 585},
+    Crime: {x: 353, y: 706},
+    Comedy: {x: 802, y: 693},
+    Biography: {x: 1291, y: 780},
+    Adventure: {x: 1717, y: 723},
     Action: {x: 353, y: 1010},
-    Western: {x: 802, y: 1210},
+    Western: {x: 842, y: 1210},
     Animation: {x: 1291, y: 1210},
-    Family: {x: 1776, y: 1210}
+    Family: {x: 1676, y: 1210}
+  };
+
+
+    var yearCenters = {
+    2000: {x: width/5, y:height/5},
+    2001: {x: 2*width/5, y:height/5},
+    2002: {x: 3*width/5, y:height/5},
+    2003: {x: 4*width/5, y:height/5},
+    2004: {x: width/5, y: 2*height/5},
+    2005: {x: 2*width/5, y: 2*height/5},
+    2006: {x: 3*width/5, y: 2*height/5},
+    2007: {x: 4*width/5, y: 2*height/5},
+    2008: {x: width/5, y: 3*height/5},
+    2009: {x: 2*width/5, y: 3*height/5},
+    2010: {x: 3*width/5, y: 3*height/5},
+    2011: {x: 4*width/5, y: 3*height/5},
+    2012: {x: width/5, y: 4*height/5},
+    2013: {x: 2*width/5, y: 4*height/5},
+    2014: {x: 3*width/5, y: 4*height/5},
+    '2015-16': {x: 4*width/5, y: 4*height/5}
+  };
+
+  var yearTitlePositions = {
+    2000: {x: 353, y:162},
+    2001: {x: 802, y:162},
+    2002: {x: 1291, y:153},
+    2003: {x: 1726, y:162},
+    2004: {x: 353, y: 465},
+    2005: {x: 802, y: 465},
+    2006: {x: 1291, y: 481},
+    2007: {x: 1726, y: 485},
+    2008: {x: 353, y: 746},
+    2009: {x: 812, y: 753},
+    2010: {x: 1291, y: 780},
+    2011: {x: 1717, y: 983},
+    2012: {x: 353, y: 1090},
+    2013: {x: 842, y: 1220},
+    2014: {x: 1291, y: 1220},
+    '2015-16': {x: 1706, y: 1210}
   };
 
   // X locations of the year titles.
@@ -78,6 +117,8 @@ function bubbleChart() {
   var svg = null;
   var bubbles = null;
   var nodes = [];
+  var attributes = ['genre', 'runtime', 'userRating', 'mpaaRating', 'principleCast', 'releaseDate', 'filmingLocation', 'budget'];
+  var selectedAttribute = attributes[0];
 
   // Charge function that is called for each node.
   // As part of the ManyBody force.
@@ -142,7 +183,7 @@ function bubbleChart() {
 
     var minAmount2 = d3.min(rawData, function(d) {return +d.revenue; });
 
-
+    var clusterInformation = gatherClusterInformation(rawData, selectedAttribute);
 
     // Sizes bubbles based on area.
     // @v4: new flattened scale names.
@@ -152,7 +193,7 @@ function bubbleChart() {
       .domain([minAmount2, maxAmount2]);
 
     var fillColor = d3.scaleLinear()
-    .domain([minAmount, maxAmount])
+    .domain([0, maxAmount])
     .range(['orange',  'purple']);
 
     // Use map() to convert raw data into node data.
@@ -180,6 +221,30 @@ function bubbleChart() {
     myNodes.sort(function (a, b) { return b.revenue - a.revenue; });
 
     return myNodes;
+  }
+
+
+  function gatherClusterInformation(rawData, selectedAttribute) {
+    clusterInfo = [];
+
+    switch(selectedAttribute) {
+      case 'genre':
+        clusterInfo = d3.nest()
+        .key(function(d) {return d.genre1;})
+        .rollup(function(v) {return {
+          count: v.length,
+          avgRev: d3.mean(v, function(d) {return d.revenue;}),
+          avgNoms: d3.mean(v, function(d) {return d.nominations;}),
+          avgWins: d3.mean(v, function(d) {return d.wins;}),
+          avgRunT: d3.mean(v, function(d) {return d.runtimeMinutes;})
+        };  })
+        .entries(rawData);
+      case 'runtime':
+        clusterInfo = d3.nest()
+      default:
+        console.log("default clause in switch case");
+    }
+    console.log(clusterInfo);
   }
 
   /*
@@ -223,7 +288,8 @@ function bubbleChart() {
       .attr('stroke', function (d) { return d3.rgb(d.color).darker(); })
       .attr('stroke-width', 2)
       .on('mouseover', showDetail)
-      .on('mouseout', hideDetail);
+      .on('mouseout', hideDetail)
+      .on('click', clusterClicked);
 
     // @v4 Merge the original empty selection and the enter selection
     bubbles = bubbles.merge(bubblesE);
@@ -241,6 +307,49 @@ function bubbleChart() {
     // Set initial layout to single group.
     groupBubbles();
   };
+
+    /*
+   * Function called on mouseover to display the
+   * details of a bubble in the tooltip.
+   */
+  function showDetail(d) {
+    // change outline to indicate hover state.
+    d3.select(this).attr('stroke', 'black');
+
+    var content = '<span class="name">Title: </span><span class="value">' +
+                  d.name +
+                  '</span><br/>' +
+                  '<span class="name">Genre: </span><span class="value">' +
+                  addCommas(d.genre1) +
+                  '</span><br/>' +
+                  '<span class="name">Revenue($M): </span><span class="value">' +
+                  truncate(d.revenue) +
+                  '</span><br/>' +
+                  '<span class="name">Nominations: </span><span class="value">' +
+                  d.nominations + 
+                  '</span><br/>' +
+                  '<span class="name">Wins: </span><span class="value">' +
+                  d.wins + 
+                  '</span>';
+
+
+    tooltip.showTooltip(content, d3.event);
+  }
+
+  /*
+   * Hides tooltip
+   */
+  function hideDetail(d) {
+    // reset outline
+    d3.select(this)
+      .attr('stroke', d3.rgb(d.color).darker());
+
+    tooltip.hideTooltip();
+  }
+
+  function clusterClicked(d) {
+    console.log()
+  }
 
   /*
    * Callback function that is called after every tick of the
@@ -272,12 +381,38 @@ function bubbleChart() {
   }
 
   function nodeGenreXPos(d) {
-    console.log(d);
+    //console.log(d);
     return genreCenters[d.genre1].x;
   }
 
   function nodeGenreYPos(d) {
     return genreCenters[d.genre1].y;
+  }
+
+  function nodeYearXPos(d) {
+    //console.log(d);
+    var yr;
+    if (d.year >= 2015) {
+      yr = '2015-16';
+    } else if (d.year < 2000) {
+      yr = 2000;
+    } else {
+      yr = d.year;
+    }
+    console.log(yr);
+    return yearCenters[yr].x;
+  }
+
+  function nodeYearYPos(d) {
+    var yr;
+    if (d.year >= 2015) {
+      yr = '2015-16';
+    } else if (d.year < 2000) {
+      yr = 2000;
+    } else {
+      yr = d.year;
+    }
+    return yearCenters[yr].y;
   }
 
 
@@ -307,10 +442,11 @@ function bubbleChart() {
    */
   function splitBubbles(attr) {
     showGenreTitles();
+    //showYearTitles();
 
     // @v4 Reset the 'x' force to draw the bubbles to their year centers
-    simulation.force('x', d3.forceX().strength(forceStrength).x(nodeGenreXPos));
-    simulation.force('y', d3.forceY().strength(forceStrength).y(nodeGenreYPos));
+    simulation.force('x', d3.forceX().strength(forceStrength).x(/*nodeYearXPos*/nodeGenreXPos));
+    simulation.force('y', d3.forceY().strength(forceStrength).y(/*nodeYearYPos*/ nodeGenreYPos));
 
     // @v4 We can reset the alpha value and restart the simulation
     simulation.alpha(1).restart();
@@ -329,14 +465,14 @@ function bubbleChart() {
   function showYearTitles() {
     // Another way to do this would be to create
     // the year texts once and then just hide them.
-    var yearsData = d3.keys(yearsTitleX);
+    var yearsData = d3.keys(yearTitlePositions);
     var years = svg.selectAll('.year')
       .data(yearsData);
 
     years.enter().append('text')
       .attr('class', 'year')
-      .attr('x', function (d) { return yearsTitleX[d]; })
-      .attr('y', 40)
+      .attr('x', function (d) { return yearTitlePositions[d].x; })
+      .attr('y', function (d) { return yearTitlePositions[d].y; })
       .attr('text-anchor', 'middle')
       .text(function (d) { return d; });
   }
@@ -356,37 +492,11 @@ function bubbleChart() {
       .text(function (d) { return d; });
   }
 
-
-  /*
-   * Function called on mouseover to display the
-   * details of a bubble in the tooltip.
-   */
-  function showDetail(d) {
-    // change outline to indicate hover state.
-    d3.select(this).attr('stroke', 'black');
-
-    var content = '<span class="name">Title: </span><span class="value">' +
-                  d.name +
-                  '</span><br/>' +
-                  '<span class="name">Amount: </span><span class="value">' +
-                  addCommas(d.genre1) +
-                  '</span><br/>' +
-                  '<span class="name">Year: </span><span class="value">' +
-                  d.year +
-                  '</span>';
-
-    tooltip.showTooltip(content, d3.event);
-  }
-
-  /*
-   * Hides tooltip
-   */
-  function hideDetail(d) {
-    // reset outline
-    d3.select(this)
-      .attr('stroke', d3.rgb(d.color).darker());
-
-    tooltip.hideTooltip();
+  function truncate(num) {
+    num = num.toString(); //If it's not already a String
+    num = num.slice(0, (num.indexOf("."))+3); //With 3 exposing the hundredths place
+    Number(num);
+    return num;
   }
 
   /*
@@ -425,8 +535,3 @@ function addCommas(nStr) {
 
   return x1 + x2;
 }
-
-
-
-
-
