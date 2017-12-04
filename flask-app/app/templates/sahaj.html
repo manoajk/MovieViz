@@ -2,14 +2,20 @@
 <html>
 <head>
 	<title></title>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="static/css/reset.css">
+  	<link rel="stylesheet" href="static/css/bubble_chart.css">
+  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
 
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  	<!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 </head>
 <body>
 	<div id="nav">
 		<div id="tab1" style="display:inline-block;">
 			<h2>Tab 1</h2>
-			<select id="attribute1">
+			<select id="attribute1" class="form-control">
 				<option value="-1">Choose an Attribute</option>
 				{% for attribute in attributes%}
 				<option value="{{loop.index0}}">{{attribute}}</option>
@@ -47,6 +53,11 @@
 		</div>
 	</div>
 
+	<script src="static/js/d3.js"></script>
+ 	<script src="static/js/tooltip.js"></script>
+ 	<script src="static/js/bubble_chart.js"></script>
+ 	<script src="static/js/vizController.js"></script>
+
 	<script>
 		var attributes = {{ attributes|safe }};
 
@@ -71,31 +82,47 @@
 		}
 
 		function baseViz1() {
-
-			$('#viz1').text('Base Viz 1')
+			showBase('#viz1Container')
 		}
 
 		function baseViz2() {
-
-			$('#viz2').text('Base Viz 2')
+			showBase('#viz2Container')
 		}
 
 		function baseViz3() {
-
-			$('#viz3').text('Base Viz 3')
+			showBase('#viz3Container')
 		}
 
 		function updateViz1(value) {
+			if (attributes[value] == "Genre") {
+				bubbleCharts[0].toggleDisplay("genre")
+				$('text[.genre]').click(function() {
+			      //get the data of the title
+			      //edit baseData
+			    })
+			} else {
+				bubbleCharts[0].toggleDisplay("all")
+			}
+			
 			$('#viz1').text('Viz 1 updated based on ' + attributes[value])
 		}
 
 		function updateViz2(value) {
+			if (attributes[value] == "Genre") {
+				bubbleCharts[1].toggleDisplay("genre")
+			} else {
+				bubbleCharts[1].toggleDisplay("all")
+			}
 			
 			$('#viz2').text('Viz 2 updated based on ' + attributes[value])
 		}
 
 		function updateViz3(value) {
-			
+			if (attributes[value] == "Genre") {
+				bubbleCharts[2].toggleDisplay("genre")
+			} else {
+				bubbleCharts[2].toggleDisplay("all")
+			}
 			$('#viz3').text('Viz 3 updated based on ' + attributes[value])
 		}
 
