@@ -2,6 +2,7 @@ from app import app
 from flask import redirect, render_template, request, session, url_for
 from modules import database as db
 from imdbScraper import scrape
+import clustering
 
 import json
 
@@ -50,10 +51,17 @@ def imdbScraper():
 	scrape()
 	return 'False'
 
+#Run `$.getJSON('/cluster', function(data, error) {//Do Stuff Here with data});`
+#in javascript to make an api call and get all the cluster data as json
+#View /cluster just to see the json data and its format
 
 @app.route('/cluster')
 def cluster():
-	return clustering()
+	clusters = clustering.cluster()
+	# print(clusters)
+	# print("CLUSTERS")
+	clusterData = json.dumps(clusters)
+	return clusterData
 # def dataset_two():
 # 	data = {
 
