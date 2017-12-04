@@ -4,7 +4,7 @@ a, a:visited, a:active {
 
 .container {
   max-width: 900px;
-  margin: auto;
+  /*margin: auto;*/
 }
 
 .button {
@@ -35,8 +35,8 @@ a, a:visited, a:active {
 }
 
 .year {
-  font-size: 21px;
-  fill: #aaa;
+  font-size: 30px;
+  fill: #000;
   cursor: default;
 }
 
