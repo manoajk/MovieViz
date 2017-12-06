@@ -10,8 +10,8 @@
 
 function bubbleChart() {
   // Constants for sizing
-  var width = 2100;
-  var height = 1400;
+  var width = 2800;
+  var height = 2100;
 
   // tooltip for mouseover functionality
   var tooltip = floatingTooltip('gates_tooltip', 240);
@@ -45,7 +45,7 @@ function bubbleChart() {
     Family: {x: 4*width/5, y: 4*height/5}
   };
 
-  var genreTitlePositions = {
+  var genreTitlePositions = {};/*{
     Thriller: {x: 353, y:182},
     'Sci-Fi': {x: 802, y:182},
     Romance: {x: 1291, y:173},
@@ -62,7 +62,7 @@ function bubbleChart() {
     Western: {x: 842, y: 1210},
     Animation: {x: 1291, y: 1210},
     Family: {x: 1676, y: 1210}
-  };
+  };*/
 
   var releaseMonthCenters = {
     Jan: {x: width/5, y:height/4},
@@ -92,52 +92,6 @@ function bubbleChart() {
   var userRatingCenters = [];
 
   var userRatingTitlePositions = {};
-
-
-  var yearCenters = {
-    2000: {x: width/5, y:height/5},
-    2001: {x: 2*width/5, y:height/5},
-    2002: {x: 3*width/5, y:height/5},
-    2003: {x: 4*width/5, y:height/5},
-    2004: {x: width/5, y: 2*height/5},
-    2005: {x: 2*width/5, y: 2*height/5},
-    2006: {x: 3*width/5, y: 2*height/5},
-    2007: {x: 4*width/5, y: 2*height/5},
-    2008: {x: width/5, y: 3*height/5},
-    2009: {x: 2*width/5, y: 3*height/5},
-    2010: {x: 3*width/5, y: 3*height/5},
-    2011: {x: 4*width/5, y: 3*height/5},
-    2012: {x: width/5, y: 4*height/5},
-    2013: {x: 2*width/5, y: 4*height/5},
-    2014: {x: 3*width/5, y: 4*height/5},
-    '2015-16': {x: 4*width/5, y: 4*height/5}
-  };
-
-  var yearTitlePositions = {
-    2000: {x: 353, y:162},
-    2001: {x: 802, y:162},
-    2002: {x: 1291, y:153},
-    2003: {x: 1726, y:162},
-    2004: {x: 353, y: 465},
-    2005: {x: 802, y: 465},
-    2006: {x: 1291, y: 481},
-    2007: {x: 1726, y: 485},
-    2008: {x: 353, y: 746},
-    2009: {x: 812, y: 753},
-    2010: {x: 1291, y: 780},
-    2011: {x: 1717, y: 983},
-    2012: {x: 353, y: 1090},
-    2013: {x: 842, y: 1220},
-    2014: {x: 1291, y: 1220},
-    '2015-16': {x: 1706, y: 1210}
-  };
-
-  // X locations of the year titles.
-  var yearsTitleX = {
-    2005: 160,
-    2010: width / 2,
-    2016: width - 160
-  };
 
   // @v4 strength to apply to the position forces
   var forceStrength = 0.1;
@@ -208,9 +162,9 @@ function bubbleChart() {
 
     var minAmount = d3.min(rawData, function(d) {return +(d.wins + 0.5*d.nominations); });
 
-    var maxAmount2 = d3.max(rawData, function (d) { return +d.revenue; });
+    var maxAmount2 = d3.max(rawData, function (d) { return +d.revenue - (+d.budget); });
 
-    var minAmount2 = d3.min(rawData, function(d) {return +d.revenue; });
+    var minAmount2 = d3.min(rawData, function(d) {return +d.revenue - (+d.budget); });
 
     //var clusterInformation = gatherClusterInformation(rawData, selectedAttribute);
 
@@ -220,7 +174,7 @@ function bubbleChart() {
     // @v4: new flattened scale names.
     var radiusScale = d3.scalePow()
       .exponent(0.5)
-      .range([2, 20])
+      .range([2, 30])
       .domain([minAmount2, maxAmount2]);
 
     var fillColor = d3.scaleLinear()
@@ -236,7 +190,7 @@ function bubbleChart() {
         year: +d.startYear,
         month: d.month,
         day: d.day,
-        radius: radiusScale(+d.revenue),
+        radius: radiusScale(+d.revenue - (+d.budget)),
         runtime: +d.runtimeMinutes,
         name: d.primaryTitle,
         color: fillColor(+ (d.wins + 0.5*d.nominations)),
@@ -293,19 +247,27 @@ function bubbleChart() {
     budgetBuckets = createBuckets(budgetMax, budgetMin, 9);
     runtimeBuckets = createBuckets(runtimeMax, runtimeMin, 9);
 
-    for (var month in releaseMonthCenters) {
-      releaseMonthTitlePositions[month] = {x: releaseMonthCenters[month].x, y: releaseMonthCenters[month].y - 100};
+    i = 1
+    for (genre in genreCenters) {
+      genreTitlePositions[genre] = {x: genreCenters[genre].x, y: i <= 10 ? genreCenters[genre].y - 235 : i > 13 ? genreCenters[genre].y - 50 : genreCenters[genre].y - 140};
+      i+=1;
+    }
+
+    i = 1;
+    for (month in releaseMonthCenters) {
+      releaseMonthTitlePositions[month] = {x: releaseMonthCenters[month].x, y: i <= 8 ? releaseMonthCenters[month].y - 220 : releaseMonthCenters[month].y - 100};
+      i+=1;
     }
 
     for (i = 0; i < runtimeBuckets.length; i++) {
       userRatingCenters.push({x: (i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
-      userRatingTitlePositions[String(i + 1) + " stars"] = {x: userRatingCenters[i].x, y: i > 7 ? userRatingCenters[i].y - 50 : userRatingCenters[i].y - 150};
+      userRatingTitlePositions[String(i + 1) + " stars"] = {x: userRatingCenters[i].x, y: i > 6 ? userRatingCenters[i].y - 50 : userRatingCenters[i].y - 280};
 
       runtimeCenters.push({name: runtimeBuckets[i], x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
-      runtimeTitlePositions[runtimeBuckets[i] + " mins"] = {x: runtimeCenters[i].x, y: i > 5 ? runtimeCenters[i].y - 50 : runtimeCenters[i].y - 150};
+      runtimeTitlePositions[runtimeBuckets[i] + " mins"] = {x: runtimeCenters[i].x, y: i > 4 ? runtimeCenters[i].y - 50 : runtimeCenters[i].y - 300};
 
       budgetCenters.push({name: budgetBuckets[i], x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
-      budgetTitlePositions[budgetBuckets[i] + " ($M)"] = {x: budgetCenters[i].x, y: i > 2 ? budgetCenters[i].y - 50 : budgetCenters[i].y - 170};
+      budgetTitlePositions[budgetBuckets[i] + " ($M)"] = {x: budgetCenters[i].x, y: i > 2 ? budgetCenters[i].y - 50 : budgetCenters[i].y - 340};
     }
   }
 
@@ -391,15 +353,24 @@ function bubbleChart() {
     var content = '<span class="name">Title: </span><span class="value">' +
                   d.name +
                   '</span><br/>' +
-                  '<span class="name">Genre: </span><span class="value">' +
-                  addCommas(d.genre1) +
+                  '<span class="name">Genres: </span><span class="value">' +
+                  addCommas(d.genre1 + " " + d.genre2 + " " + d.genre3) +
                   '</span><br/>' +
                   '<span class="name">Revenue($M): </span><span class="value">' +
                   truncate(d.revenue) +
                   '</span><br/>' +
+                  '<span class="name">Budget($M): </span><span class="value">' +
+                  d.budget + 
+                  '</span><br/>' +
+                  '<span class="name">IMDB Rating: </span><span class="value">' +
+                  d.userRating + 
+                  '</span><br/>' +
+                  '<span class="name">Runtime (Mins): </span><span class="value">' +
+                  d.runtime + 
+                  '</span><br/>' +
                   '<span class="name">Nominations: </span><span class="value">' +
                   d.nominations + 
-                  '</span><br/>' +
+                  '</span><br/>' +                 
                   '<span class="name">Wins: </span><span class="value">' +
                   d.wins + 
                   '</span>';
@@ -532,12 +503,12 @@ function bubbleChart() {
    * yearCenter of their data's year.
    */
   function splitBubbles(attr) {
-    showTitles(userRatingTitlePositions);
+    showTitles(genreTitlePositions);
     //showYearTitles();
 
     // @v4 Reset the 'x' force to draw the bubbles to their year centers
-    simulation.force('x', d3.forceX().strength(forceStrength).x(nodeUserRatingXPos));
-    simulation.force('y', d3.forceY().strength(forceStrength).y(nodeUserRatingYPos));
+    simulation.force('x', d3.forceX().strength(forceStrength).x(nodeGenreXPos));
+    simulation.force('y', d3.forceY().strength(forceStrength).y(nodeGenreYPos));
 
     // @v4 We can reset the alpha value and restart the simulation
     simulation.alpha(1).restart();
@@ -547,6 +518,7 @@ function bubbleChart() {
    * Hides Year title displays.
    */
   function hideYearTitles() {
+    console.log("Hiding year titles");
     svg.selectAll('.title').remove();
   }
 
@@ -576,7 +548,7 @@ function bubbleChart() {
       .data(genreData);
 
     genres.enter().append('text')
-      .attr('class', 'year')
+      .attr('class', 'title')
       .attr('x', function (d) { return titlePositions[d].x; })
       .attr('y', function (d) { return titlePositions[d].y; })
 // =======
@@ -625,16 +597,12 @@ function bubbleChart() {
  * and add commas to it to improve presentation.
  */
 function addCommas(nStr) {
-  nStr += '';
-  var x = nStr.split('.');
+  var x = nStr.split(' ');
   var x1 = x[0];
-  var x2 = x.length > 1 ? '.' + x[1] : '';
-  var rgx = /(\d+)(\d{3})/;
-  while (rgx.test(x1)) {
-    x1 = x1.replace(rgx, '$1' + ',' + '$2');
-  }
+  var x2 = x.length > 1 ? ', ' + x[1] : '';
+  var x3 = x.length > 2 ? ', ' + x[2] : '';
 
-  return x1 + x2;
+  return x1 + x2 + x3;
 }
 
 function gatherClusterInformation(rawData, selectedAttribute) {
