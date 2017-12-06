@@ -40,6 +40,8 @@ def getAllMovies():
     movies = getCursor().fetchall()
 
     movieList = []
+    i = 0
+    movieIndex = {}
     for movie in movies:
         movieDict = {}
         movieDict['budget'] = movie[4]
@@ -69,10 +71,18 @@ def getAllMovies():
             elif value is None:
                 movieDict[key] = 0
 
-        print(movieDict)
-
         if movieDict['genre1'] != '':
             movieList.append(movieDict)
+            movieIndex[movieDict['tconst']] = i
+            i+=1
+
+    getCursor().execute("SELECT * FROM ratings")
+    ratings = getCursor().fetchall()
+
+    for rating in ratings:
+        tconst = rating[0]
+        if tconst in movieIndex:
+            movieList[movieIndex[tconst]]['userRating'] = rating[1]
 
     return movieList
 

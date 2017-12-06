@@ -64,8 +64,37 @@ function bubbleChart() {
     Family: {x: 1676, y: 1210}
   };
 
+  var releaseMonthCenters = {
+    Jan: {x: width/5, y:height/4},
+    Feb: {x: 2*width/5, y:height/4},
+    Mar: {x: 3*width/5, y:height/4},
+    Apr: {x: 4*width/5, y:height/4},
+    May: {x: width/5, y: 2*height/4},
+    Jun: {x: 2*width/5, y: 2*height/4},
+    Jul: {x: 3*width/5, y: 2*height/4},
+    Aug: {x: 4*width/5, y: 2*height/4},
+    Sep: {x: width/5, y: 3*height/4},
+    Oct: {x: 2*width/5, y: 3*height/4},
+    Nov: {x: 3*width/5, y: 3*height/4},
+    Dec: {x: 4*width/5, y: 3*height/4},
+  };
 
-    var yearCenters = {
+  var releaseMonthTitlePositions = {};
+
+  var runtimeCenters = [];
+
+  var runtimeTitlePositions = {};
+
+  var budgetCenters = [];
+
+  var budgetTitlePositions = {};
+
+  var userRatingCenters = [];
+
+  var userRatingTitlePositions = {};
+
+
+  var yearCenters = {
     2000: {x: width/5, y:height/5},
     2001: {x: 2*width/5, y:height/5},
     2002: {x: 3*width/5, y:height/5},
@@ -117,7 +146,7 @@ function bubbleChart() {
   var svg = null;
   var bubbles = null;
   var nodes = [];
-  var attributes = ['genre', 'runtime', 'userRating', 'mpaaRating', 'principleCast', 'releaseDate', 'filmingLocation', 'budget'];
+  var attributes = ['genre', 'runtime', 'userRating', 'mpaaRating', 'principleCast', 'releaseMonth', 'filmingLocation', 'budget'];
   var selectedAttribute = attributes[0];
 
   // Charge function that is called for each node.
@@ -183,7 +212,9 @@ function bubbleChart() {
 
     var minAmount2 = d3.min(rawData, function(d) {return +d.revenue; });
 
-    var clusterInformation = gatherClusterInformation(rawData, selectedAttribute);
+    //var clusterInformation = gatherClusterInformation(rawData, selectedAttribute);
+
+    createAllCenters(rawData);
 
     // Sizes bubbles based on area.
     // @v4: new flattened scale names.
@@ -203,13 +234,18 @@ function bubbleChart() {
       return {
         id: d.tconst,
         year: +d.startYear,
+        month: d.month,
+        day: d.day,
         radius: radiusScale(+d.revenue),
         runtime: +d.runtimeMinutes,
         name: d.primaryTitle,
         color: fillColor(+ (d.wins + 0.5*d.nominations)),
         genre1: d.genre1,
+        genre2: d.genre2,
+        genre3: d.genre3,
         wins: +d.wins,
         nominations: +d.nominations,
+        userRating: +d.userRating,
         budget: +d.budget,
         revenue: +d.revenue,
         x: Math.random() * 900,
@@ -247,6 +283,45 @@ function bubbleChart() {
     console.log(clusterInfo);
   }
 
+  function createAllCenters(rawData) {
+
+    runtimeMax = d3.max(rawData, function(d) {return +d.runtimeMinutes;});
+    runtimeMin = d3.min(rawData, function(d) {return +d.runtimeMinutes;});
+
+    budgetMin = d3.min(rawData, function(d) {return +d.budget;});
+    budgetMax = d3.max(rawData, function(d) {return +d.budget;});
+
+    budgetBuckets = createBuckets(budgetMax, budgetMin, 9);
+    runtimeBuckets = createBuckets(runtimeMax, runtimeMin, 9);
+
+    for (var month in releaseMonthCenters) {
+      releaseMonthTitlePositions[month] = {x: releaseMonthCenters[month].x, y: releaseMonthCenters[month].y - 100};
+    }
+
+    for (i = 0; i < runtimeBuckets.length; i++) {
+      userRatingCenters.push({x: (i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
+      userRatingTitlePositions[String(i + 1) + " stars"] = {x: userRatingCenters[i].x, y: i > 7 ? userRatingCenters[i].y - 50 : userRatingCenters[i].y - 150};
+
+      runtimeCenters.push({name: runtimeBuckets[i], x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
+      runtimeTitlePositions[runtimeBuckets[i] + " mins"] = {x: runtimeCenters[i].x, y: i > 5 ? runtimeCenters[i].y - 50 : runtimeCenters[i].y - 150};
+
+      budgetCenters.push({name: budgetBuckets[i], x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
+      budgetTitlePositions[budgetBuckets[i] + " ($M)"] = {x: budgetCenters[i].x, y: i > 2 ? budgetCenters[i].y - 50 : budgetCenters[i].y - 170};
+    }
+  }
+
+  function createBuckets(maxVal, minVal, numBuckets) {
+    bucketRange = Math.floor((maxVal - minVal) / numBuckets);
+    buckets = [];
+    minVal = Math.floor(minVal);
+    buckets.push(String(minVal) + '-' + String(bucketRange + minVal));
+    for (i = 1; i < numBuckets - 1; i++) {
+      buckets.push(String(bucketRange*i + minVal + 1) + '-' + String(bucketRange*(i+1) + minVal));
+    }
+    buckets.push((bucketRange*(i) + minVal + 1) + '-' + String(maxVal));
+    return buckets;
+  }
+
   /*
    * Main entry point to the bubble chart. This function is returned
    * by the parent closure. It prepares the rawData for visualization
@@ -262,7 +337,6 @@ function bubbleChart() {
    */
   var chart = function chart(selector, rawData) {
     // convert raw data into nodes data
-    console.log(rawData)
     nodes = createNodes(rawData);
 
     // Create a SVG element inside the provided selector
@@ -364,21 +438,6 @@ function bubbleChart() {
       .attr('cy', function (d) { return d.y; });
   }
 
-  /*
-   * Provides a x value for each node to be used with the split by year
-   * x force.
-   */
-  function nodeYearPos(d) {
-    var yr;
-    if (d.year <= 2005) {
-      yr = 2005;
-    } else if (d.year <= 2010) {
-      yr = 2010;
-    } else {
-      yr = 2016;
-    }
-    return yearCenters[yr].x;
-  }
 
   function nodeGenreXPos(d) {
     //console.log(d);
@@ -389,30 +448,62 @@ function bubbleChart() {
     return genreCenters[d.genre1].y;
   }
 
-  function nodeYearXPos(d) {
-    //console.log(d);
-    var yr;
-    if (d.year >= 2015) {
-      yr = '2015-16';
-    } else if (d.year < 2000) {
-      yr = 2000;
-    } else {
-      yr = d.year;
-    }
-    console.log(yr);
-    return yearCenters[yr].x;
+  function nodeRuntimeXPos(d) {
+    minRuntime = parseInt(runtimeCenters[0].name.split("-")[0]);
+    maxRuntime = parseInt(runtimeCenters[runtimeCenters.length - 1].name.split("-")[1]);
+    binSize = parseInt(runtimeCenters[0].name.split("-")[1] - runtimeCenters[0].name.split("-")[0]);
+    bucketIndex = Math.floor((d.runtime - minRuntime) / binSize);
+    if (bucketIndex > 8) bucketIndex = 8;
+    return runtimeCenters[bucketIndex].x;
   }
 
-  function nodeYearYPos(d) {
-    var yr;
-    if (d.year >= 2015) {
-      yr = '2015-16';
-    } else if (d.year < 2000) {
-      yr = 2000;
-    } else {
-      yr = d.year;
-    }
-    return yearCenters[yr].y;
+  function nodeRuntimeYPos(d) {
+    minRuntime = parseInt(runtimeCenters[0].name.split("-")[0]);
+    maxRuntime = parseInt(runtimeCenters[runtimeCenters.length - 1].name.split("-")[1]);
+    binSize = parseInt(runtimeCenters[0].name.split("-")[1] - runtimeCenters[0].name.split("-")[0]);
+    bucketIndex = Math.floor((d.runtime - minRuntime) / binSize);
+    if (bucketIndex > 8) bucketIndex = 8;
+    return runtimeCenters[bucketIndex].y;
+  }
+
+  function nodeBudgetXPos(d) {
+    minBudget = parseInt(budgetCenters[0].name.split("-")[0]);
+    maxBudget = parseInt(budgetCenters[budgetCenters.length - 1].name.split("-")[1]);
+    binSize = parseInt(budgetCenters[0].name.split("-")[1] - budgetCenters[0].name.split("-")[0]);
+    bucketIndex = Math.floor((d.budget - minBudget) / binSize);
+    if (bucketIndex > 8) bucketIndex = 8;
+    return budgetCenters[bucketIndex].x;
+  }
+
+  function nodeBudgetYPos(d) {
+    minBudget = parseInt(budgetCenters[0].name.split("-")[0]);
+    maxBudget = parseInt(budgetCenters[budgetCenters.length - 1].name.split("-")[1]);
+    binSize = parseInt(budgetCenters[0].name.split("-")[1] - budgetCenters[0].name.split("-")[0]);
+    bucketIndex = Math.floor((d.budget - minBudget) / binSize);
+    if (bucketIndex > 8) bucketIndex = 8;
+    return budgetCenters[bucketIndex].y;
+  }
+
+  function nodeReleaseMonthXPos(d) {
+    return releaseMonthCenters[d.month].x;
+  }
+
+  function nodeReleaseMonthYPos(d) {
+    return releaseMonthCenters[d.month].y;
+  }
+
+  function nodeUserRatingXPos(d) {
+    userRating = 0;
+    if (+d.userRating >= 10) {userRating = 9;}
+    else userRating = Math.floor(+d.userRating);
+    return userRatingCenters[userRating- 1].x;
+  }
+
+  function nodeUserRatingYPos(d) {
+    userRating = 0;
+    if (+d.userRating >= 10) {userRating = 9;}
+    else userRating = Math.floor(+d.userRating);
+    return userRatingCenters[userRating - 1].y;
   }
 
 
@@ -423,6 +514,8 @@ function bubbleChart() {
    * center of the visualization.
    */
   function groupBubbles() {
+    console.log("Grouping bubbles");
+
     hideYearTitles();
 
     // @v4 Reset the 'x' force to draw the bubbles to the center.
@@ -441,12 +534,12 @@ function bubbleChart() {
    * yearCenter of their data's year.
    */
   function splitBubbles(attr) {
-    showGenreTitles();
+    showTitles(userRatingTitlePositions);
     //showYearTitles();
 
     // @v4 Reset the 'x' force to draw the bubbles to their year centers
-    simulation.force('x', d3.forceX().strength(forceStrength).x(/*nodeYearXPos*/nodeGenreXPos));
-    simulation.force('y', d3.forceY().strength(forceStrength).y(/*nodeYearYPos*/ nodeGenreYPos));
+    simulation.force('x', d3.forceX().strength(forceStrength).x(nodeUserRatingXPos));
+    simulation.force('y', d3.forceY().strength(forceStrength).y(nodeUserRatingYPos));
 
     // @v4 We can reset the alpha value and restart the simulation
     simulation.alpha(1).restart();
@@ -477,17 +570,17 @@ function bubbleChart() {
       .text(function (d) { return d; });
   }
 
-  function showGenreTitles() {
+  function showTitles(titlePositions) {
     // Another way to do this would be to create
     // the year texts once and then just hide them.
-    var genreData = d3.keys(genreTitlePositions);
+    var genreData = d3.keys(titlePositions);
     var genres = svg.selectAll('.year')
       .data(genreData);
 
     genres.enter().append('text')
       .attr('class', 'year')
-      .attr('x', function (d) { return genreTitlePositions[d].x; })
-      .attr('y', function (d) { return genreTitlePositions[d].y; })
+      .attr('x', function (d) { return titlePositions[d].x; })
+      .attr('y', function (d) { return titlePositions[d].y; })
       .attr('text-anchor', 'middle')
       .text(function (d) { return d; });
   }
