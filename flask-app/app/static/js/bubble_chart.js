@@ -223,30 +223,6 @@ function bubbleChart() {
     return myNodes;
   }
 
-
-  function gatherClusterInformation(rawData, selectedAttribute) {
-    clusterInfo = [];
-
-    switch(selectedAttribute) {
-      case 'genre':
-        clusterInfo = d3.nest()
-        .key(function(d) {return d.genre1;})
-        .rollup(function(v) {return {
-          count: v.length,
-          avgRev: d3.mean(v, function(d) {return d.revenue;}),
-          avgNoms: d3.mean(v, function(d) {return d.nominations;}),
-          avgWins: d3.mean(v, function(d) {return d.wins;}),
-          avgRunT: d3.mean(v, function(d) {return d.runtimeMinutes;})
-        };  })
-        .entries(rawData);
-      case 'runtime':
-        clusterInfo = d3.nest()
-      default:
-        console.log("default clause in switch case");
-    }
-    console.log(clusterInfo);
-  }
-
   /*
    * Main entry point to the bubble chart. This function is returned
    * by the parent closure. It prepares the rawData for visualization
@@ -456,7 +432,7 @@ function bubbleChart() {
    * Hides Year title displays.
    */
   function hideYearTitles() {
-    svg.selectAll('.year').remove();
+    svg.selectAll('.title').remove();
   }
 
   /*
@@ -466,11 +442,11 @@ function bubbleChart() {
     // Another way to do this would be to create
     // the year texts once and then just hide them.
     var yearsData = d3.keys(yearTitlePositions);
-    var years = svg.selectAll('.year')
+    var years = svg.selectAll('.title')
       .data(yearsData);
 
     years.enter().append('text')
-      .attr('class', 'year')
+      .attr('class', 'title')
       .attr('x', function (d) { return yearTitlePositions[d].x; })
       .attr('y', function (d) { return yearTitlePositions[d].y; })
       .attr('text-anchor', 'middle')
@@ -481,11 +457,11 @@ function bubbleChart() {
     // Another way to do this would be to create
     // the year texts once and then just hide them.
     var genreData = d3.keys(genreTitlePositions);
-    var genres = svg.selectAll('.year')
+    var genres = svg.selectAll('.title')
       .data(genreData);
 
     genres.enter().append('text')
-      .attr('class', 'year')
+      .attr('class', 'title')
       .attr('x', function (d) { return genreTitlePositions[d].x; })
       .attr('y', function (d) { return genreTitlePositions[d].y; })
       .attr('text-anchor', 'middle')
@@ -535,3 +511,34 @@ function addCommas(nStr) {
 
   return x1 + x2;
 }
+
+function gatherClusterInformation(rawData, selectedAttribute) {
+    clusterInfo = [];
+    clusterData = {};
+
+    switch(selectedAttribute) {
+      case 'genre':
+        d3.nest()
+        .key(function(d) {return d.genre1;})
+        .rollup(function(v) { 
+          clusterDict = {};
+          clusterDict[v[0].genre1] = {
+            count: v.length,
+            avgRev: d3.mean(v, function(d) {return d.revenue;}),
+            avgNoms: d3.mean(v, function(d) {return d.nominations;}),
+            avgWins: d3.mean(v, function(d) {return d.wins;}),
+            avgRunT: d3.mean(v, function(d) {return d.runtimeMinutes;})
+          };
+          clusterInfo.push(clusterDict);
+
+          clusterData[v[0].genre1] = v;
+
+        })
+        .entries(rawData);
+      case 'runtime':
+        clusterInfo = d3.nest()
+      default:
+        console.log("default clause in switch case");
+    }
+    return {'clusterInfo':clusterInfo, 'clusterData': clusterData};
+  }

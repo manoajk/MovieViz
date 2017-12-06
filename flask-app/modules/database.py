@@ -69,8 +69,6 @@ def getAllMovies():
             elif value is None:
                 movieDict[key] = 0
 
-        print(movieDict)
-
         if movieDict['genre1'] != '':
             movieList.append(movieDict)
 

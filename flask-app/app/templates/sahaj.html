@@ -24,7 +24,7 @@
 		</div>
 		<div id="tab2" style="display:inline-block;">
 			<h2>Tab 2</h2>
-			<select id="attribute2">
+			<select id="attribute2" class="form-control">
 				<option value="-1">Choose an Attribute</option>
 				{% for attribute in attributes%}
 				<option value="{{loop.index0}}">{{attribute}}</option>
@@ -33,7 +33,7 @@
 		</div>
 		<div id="tab3" style="display:inline-block;">
 			<h2>Tab 3</h2>
-			<select id="attribute3">
+			<select id="attribute3" class="form-control">
 				<option value="-1">Choose an Attribute</option>
 				{% for attribute in attributes%}
 				<option value="{{loop.index0}}">{{attribute}}</option>
@@ -56,158 +56,11 @@
 	<script src="static/js/d3.js"></script>
  	<script src="static/js/tooltip.js"></script>
  	<script src="static/js/bubble_chart.js"></script>
+ 	<script type="text/javascript">
+ 		var attributes = {{ attributes|safe }};
+ 	</script>
  	<script src="static/js/vizController.js"></script>
 
-	<script>
-		var attributes = {{ attributes|safe }};
-
-		console.log(attributes)
-
-		function showViz1() {
-			$('#viz2Container').hide();
-			$('#viz3Container').hide();
-			$('#viz1Container').show();
-		}
-
-		function showViz2() {
-			$('#viz1Container').hide();
-			$('#viz3Container').hide();
-			$('#viz2Container').show();
-		}
-
-		function showViz3() {
-			$('#viz1Container').hide();
-			$('#viz2Container').hide();
-			$('#viz3Container').show();
-		}
-
-		function baseViz1() {
-			showBase('#viz1Container')
-		}
-
-		function baseViz2() {
-			showBase('#viz2Container')
-		}
-
-		function baseViz3() {
-			showBase('#viz3Container')
-		}
-
-		function updateViz1(value) {
-			if (attributes[value] == "Genre") {
-				bubbleCharts[0].toggleDisplay("genre")
-				$('text[.genre]').click(function() {
-			      //get the data of the title
-			      //edit baseData
-			    })
-			} else {
-				bubbleCharts[0].toggleDisplay("all")
-			}
-			
-			$('#viz1').text('Viz 1 updated based on ' + attributes[value])
-		}
-
-		function updateViz2(value) {
-			if (attributes[value] == "Genre") {
-				bubbleCharts[1].toggleDisplay("genre")
-			} else {
-				bubbleCharts[1].toggleDisplay("all")
-			}
-			
-			$('#viz2').text('Viz 2 updated based on ' + attributes[value])
-		}
-
-		function updateViz3(value) {
-			if (attributes[value] == "Genre") {
-				bubbleCharts[2].toggleDisplay("genre")
-			} else {
-				bubbleCharts[2].toggleDisplay("all")
-			}
-			$('#viz3').text('Viz 3 updated based on ' + attributes[value])
-		}
-
-
-		$('#attribute1').change(function() {
-			var selectedValue = $(this).val();
-			if (selectedValue == -1) {
-				$('#tab2').hide();
-				$('#tab3').hide();
-
-				$('#attribute2').val('-1');
-				$('#attribute3').val('-1');
-
-				baseViz2();
-				baseViz3();
-
-				showViz1()
-				baseViz1();
-			} else {
-				$('#tab2').show();
-
-				showViz1();
-				updateViz1(selectedValue);
-			}
-		});
-
-		$('#attribute2').change(function() {
-			var selectedValue = $(this).val();
-			if (selectedValue == -1) {
-				$('#tab3').hide();
-
-				$('#attribute3').val('-1');
-
-				baseViz3();
-
-				showViz2();
-				baseViz2();
-			} else {
-				$('#tab3').show();
-
-				showViz2();
-				updateViz2(selectedValue);
-
-			}
-		});
-
-		$('#attribute3').change(function() {
-			var selectedValue = $(this).val();
-			if (selectedValue == -1) {
-
-				showViz3();
-				baseViz3();
-			} else {
-
-				showViz3();
-				updateViz3(selectedValue);
-
-			}
-		});
-
-		$('#tab1').click(function() {
-			showViz1();
-		})
-
-		$('#tab2').click(function() {
-			showViz2();
-		})
-
-		$('#tab3').click(function() {
-			showViz3();
-		})
-
-		
-		$('#tab1').show();
-		$('#tab2').hide();
-		$('#tab3').hide();
-
-		showViz1();
-
-		baseViz1();
-		baseViz2();
-		baseViz3();
-		
-
-	</script>
 	
 </body>
 </html>
