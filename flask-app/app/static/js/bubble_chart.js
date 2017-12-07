@@ -335,19 +335,19 @@ function bubbleChart() {
       for (i = 0; i < userRatingClusters.length; i++) {
         var name = userRatingClusters[i]
         userRatingCenters[name] = {x: (i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4};
-        userRatingTitlePositions[name + " stars"] = {x: userRatingCenters[name].x, y: i > 6 ? userRatingCenters[name].y - 50 : userRatingCenters[name].y - 280, key: name};
+        userRatingTitlePositions[name + " stars"] = {x: userRatingCenters[name].x, y: i > 6 ? userRatingCenters[name].y - 50 : userRatingCenters[name].y - 380, key: name};
       }
 
       for (i = 0; i < runtimeClusters.length; i++) {
         var name = runtimeClusters[i]
         runtimeCenters[name] = {name: name, x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4};
-        runtimeTitlePositions[name + " mins"] = {x: runtimeCenters[name].x, y: i > 4 ? runtimeCenters[name].y - 50 : runtimeCenters[name].y - 300, key: name};
+        runtimeTitlePositions[name + " mins"] = {x: runtimeCenters[name].x, y: runtimeCenters[name].y - 380, key: name};
       }
 
       for (i = 0; i < budgetClusters.length; i++) {
         var name = budgetClusters[i]
         budgetCenters[name] = {name: name, x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4};
-        budgetTitlePositions[name + " ($M)"] = {x: budgetCenters[name].x, y: i > 2 ? budgetCenters[name].y - 50 : budgetCenters[name].y - 340, key: name};
+        budgetTitlePositions[name + " ($M)"] = {x: budgetCenters[name].x, y: i > 2 ? budgetCenters[name].y - 50 : budgetCenters[name].y - 380, key: name};
       }
 
       for (d in rawData) {
@@ -473,6 +473,7 @@ function bubbleChart() {
                   d.wins + 
                   '</span>';
 
+    console.log(content);
 
     tooltip.showTooltip(content, d3.event);
   }

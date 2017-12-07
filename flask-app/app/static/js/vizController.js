@@ -2,6 +2,44 @@ var bubbleCharts = []
 var clusters = [new Set(), new Set(), new Set()]
 var prevClusters = [new Set(), new Set(), new Set()]
 var allData = []
+var tooltip = floatingTooltip('summary_tooltip', 240);
+
+function showDetail(clusterAverages, event) {
+
+  var content = '<span class="name">Number of movies: </span><span class="value">' +
+                clusterAverages.count +
+                '</span><br/>' +
+                '<span class="name">Average Revenue($M): </span><span class="value">' +
+                truncate(clusterAverages.avgRev) +
+                '</span><br/>' +
+                '<span class="name">Average Budget($M): </span><span class="value">' +
+                truncate(clusterAverages.avgBug) + 
+                '</span><br/>' +
+                '<span class="name">Average IMDB Rating: </span><span class="value">' +
+                truncate(clusterAverages.avgRating) + 
+                '</span><br/>' +
+                '<span class="name">Average Runtime (Mins): </span><span class="value">' +
+                truncate(clusterAverages.avgRunT) + 
+                '</span><br/>' +
+                '<span class="name">Averate #Nominations: </span><span class="value">' +
+                truncate(clusterAverages.avgNoms) + 
+                '</span><br/>' +                 
+                '<span class="name">Average #Wins: </span><span class="value">' +
+                truncate(clusterAverages.avgWins) + 
+                '</span>';
+
+
+  tooltip.showTooltip(content, event);
+}
+
+function truncate(num) {
+  console.log(num);
+  num = num.toString(); //If it's not already a String
+  num = num.slice(0, (num.indexOf("."))+3); //With 3 exposing the hundredths place
+  Number(num);
+  return num;
+}
+
 
 function eqSet(as, bs) {
   if (as.size !== bs.size) return false;
@@ -153,7 +191,7 @@ function updateViz1(value) {
       console.log(clusters);
     });
 
-    $('#viz1Container .title').hover(function() {
+    $('#viz1Container .title').mousemove(function(event) {
       var key = $(this).attr('key')
       var nodes = clustersDict[key]
 
@@ -165,15 +203,20 @@ function updateViz1(value) {
           clusterAverages= {
             count: v.length,
             avgRev: d3.mean(v, function(d) {return d.revenue;}),
+            avgBug: d3.mean(v, function(d) {return d.budget;}),
             avgNoms: d3.mean(v, function(d) {return d.nominations;}),
             avgWins: d3.mean(v, function(d) {return d.wins;}),
-            avgRunT: d3.mean(v, function(d) {return d.runtime;})
+            avgRunT: d3.mean(v, function(d) {return d.runtime;}),
+            avgRating: d3.mean(v, function(d) {return d.userRating;})
           };
         })
         .entries(nodes);
 
       console.log(clusterAverages)
-    });
+      console.log("The x position is : " + event.pageX);
+      showDetail(clusterAverages, event);
+    })
+    .mouseleave(function() {tooltip.hideTooltip();});
 
   }
   
@@ -199,7 +242,7 @@ function updateViz2(value) {
       console.log(clusters);
     });
 
-    $('#viz2Container .title').hover(function() {
+    $('#viz2Container .title').mousemove(function(event) {
       var key = $(this).attr('key')
       var nodes = clustersDict[key]
 
@@ -217,8 +260,6 @@ function updateViz2(value) {
           };
         })
         .entries(nodes);
-
-      console.log(clusterAverages)
     });
   }
   
