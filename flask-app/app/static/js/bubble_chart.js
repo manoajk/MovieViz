@@ -325,7 +325,8 @@ function bubbleChart() {
       i+=1;
     }
 
-    $.getJSON('/cluster', function(data, error){
+
+    $.post('/cluster', {"data":JSON.stringify(rawData)}, function(data, error){
       console.log("got cluster data")
       
       var userRatingClusters = data["0"]["clusters"]
@@ -357,7 +358,7 @@ function bubbleChart() {
       }
 
       console.log("finished cluster data")
-    });
+    }, "json");
 
 
   }

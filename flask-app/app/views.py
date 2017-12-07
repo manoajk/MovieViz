@@ -52,8 +52,10 @@ def imdbScraper():
 	return 'False'
 
 
-@app.route('/cluster')
+@app.route('/cluster', methods=["GET","POST"])
 def cluster():
-	clusters = clustering()
+	data = request.form.to_dict()["data"]
+	dataDict = json.loads(data)
+	clusters = clustering(dataDict)
 	clusterData = json.dumps(clusters)
 	return clusterData
