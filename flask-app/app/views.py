@@ -21,7 +21,7 @@ def dhruv():
 
 @app.route('/sahaj')
 def sahaj():
-	attributes = ['Genre', 'Month of Release', 'Year of Release']
+	attributes = ['genre', 'runtime', 'userRating', 'releaseMonth', 'budget']
 	return render_template("sahaj.html",attributes=attributes)
 
 def obj_dict(obj):
