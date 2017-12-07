@@ -144,6 +144,7 @@ function updateViz1(value) {
 
 
     $('#viz1Container .title').click(function() {
+      $(this).toggleClass('clicked');
       if (clusters[1].has($(this).attr('key'))) {
         clusters[1].delete($(this).attr('key'));
       } else {
@@ -189,6 +190,7 @@ function updateViz2(value) {
     var clustersDict = bubbleCharts[1].getClusterData();
 
     $('#viz2Container .title').click(function() {
+      $(this).toggleClass('clicked');
       if (clusters[2].has($(this).attr('key'))) {
         clusters[2].delete($(this).attr('key'));
       } else {
