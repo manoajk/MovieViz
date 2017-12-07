@@ -2,6 +2,7 @@ from app import app
 from flask import redirect, render_template, request, session, url_for
 from modules import database as db
 from imdbScraper import scrape
+from clustering import clustering
 
 import json
 
@@ -53,7 +54,9 @@ def imdbScraper():
 
 @app.route('/cluster')
 def cluster():
-	return clustering()
+	clusters = clustering()
+	clusterData = json.dumps(clusters)
+	return clusterData
 # def dataset_two():
 # 	data = {
 

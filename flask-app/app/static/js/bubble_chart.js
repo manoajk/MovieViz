@@ -81,15 +81,15 @@ function bubbleChart() {
 
   var releaseMonthTitlePositions = {};
 
-  var runtimeCenters = [];
+  var runtimeCenters = {};
 
   var runtimeTitlePositions = {};
 
-  var budgetCenters = [];
+  var budgetCenters = {};
 
   var budgetTitlePositions = {};
 
-  var userRatingCenters = [];
+  var userRatingCenters = {};
 
   var userRatingTitlePositions = {};
 
@@ -325,16 +325,47 @@ function bubbleChart() {
       i+=1;
     }
 
-    for (i = 0; i < runtimeBuckets.length; i++) {
-      userRatingCenters.push({x: (i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
-      userRatingTitlePositions[String(i + 1) + " stars"] = {x: userRatingCenters[i].x, y: i > 6 ? userRatingCenters[i].y - 50 : userRatingCenters[i].y - 280, key: i};
+    console.log(userRatingCenters)
 
-      runtimeCenters.push({name: runtimeBuckets[i], x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
-      runtimeTitlePositions[runtimeBuckets[i] + " mins"] = {x: runtimeCenters[i].x, y: i > 4 ? runtimeCenters[i].y - 50 : runtimeCenters[i].y - 300, key: i};
+    $.getJSON('/cluster', function(data, error){
+      console.log("got cluster data")
+      
+      var userRatingClusters = data["0"]["clusters"]
+      var runtimeClusters = data["1"]["clusters"]
+      var budgetClusters = data["2"]["clusters"]
 
-      budgetCenters.push({name: budgetBuckets[i], x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
-      budgetTitlePositions[budgetBuckets[i] + " ($M)"] = {x: budgetCenters[i].x, y: i > 2 ? budgetCenters[i].y - 50 : budgetCenters[i].y - 340, key: i};
-    }
+      for (i = 0; i < userRatingClusters.length; i++) {
+        var name = userRatingClusters[i]
+        userRatingCenters[name] = {x: (i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4};
+        userRatingTitlePositions[name + " stars"] = {x: userRatingCenters[name].x, y: i > 6 ? userRatingCenters[name].y - 50 : userRatingCenters[name].y - 280, key: name};
+      }
+
+      for (i = 0; i < runtimeClusters.length; i++) {
+        var name = runtimeClusters[i]
+        runtimeCenters[name] = {name: name, x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4};
+        runtimeTitlePositions[name + " mins"] = {x: runtimeCenters[name].x, y: i > 4 ? runtimeCenters[name].y - 50 : runtimeCenters[name].y - 300, key: name};
+      }
+
+      for (i = 0; i < budgetClusters.length; i++) {
+        var name = budgetClusters[i]
+        budgetCenters[name] = {name: name, x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4};
+        budgetTitlePositions[name + " ($M)"] = {x: budgetCenters[name].x, y: i > 2 ? budgetCenters[name].y - 50 : budgetCenters[name].y - 340, key: name};
+      }
+
+      for (d in rawData) {
+        rawData[d]["userRatingCluster"] = userRatingClusters[data["0"][rawData[d].id]]
+        rawData[d]["runtimeCluster"] = runtimeClusters[data["1"][rawData[d].id]]
+        rawData[d]["budgetCluster"] = budgetClusters[data["2"][rawData[d].id]]
+        console.log(rawData[d].tconst)
+        console.log(rawData[d])
+      }
+
+      console.log("finished cluster data")
+      console.log(rawData)
+    });
+
+    console.log(userRatingCenters)
+
   }
 
   function createBuckets(maxVal, minVal, numBuckets) {
@@ -370,6 +401,7 @@ function bubbleChart() {
     }
 
     createAllCenters(nodes);
+    console.log(nodes)
 
     // Create a SVG element inside the provided selector
     // with desired size.
@@ -501,53 +533,58 @@ function bubbleChart() {
   function nodeRuntimeXPos(d) {
     
 
-    minRuntime = parseInt(runtimeCenters[0].name.split("-")[0]);
-    maxRuntime = parseInt(runtimeCenters[runtimeCenters.length - 1].name.split("-")[1]);
-    binSize = parseInt(runtimeCenters[0].name.split("-")[1] - runtimeCenters[0].name.split("-")[0]);
-    bucketIndex = Math.floor((d.runtime - minRuntime) / binSize);
-    if (bucketIndex > 8) bucketIndex = 8;
+    // minRuntime = parseInt(runtimeCenters[0].name.split("-")[0]);
+    // maxRuntime = parseInt(runtimeCenters[runtimeCenters.length - 1].name.split("-")[1]);
+    // binSize = parseInt(runtimeCenters[0].name.split("-")[1] - runtimeCenters[0].name.split("-")[0]);
+    // bucketIndex = Math.floor((d.runtime - minRuntime) / binSize);
+    // if (bucketIndex > 8) bucketIndex = 8;
 
-    if (bucketIndex.toString() in clusterData) {
-      clusterData[bucketIndex.toString()].push(d);
+    if (d.runtimeCluster in clusterData) {
+      clusterData[d.runtimeCluster].push(d);
     } else {
-      clusterData[bucketIndex.toString()] = [d];
+      clusterData[d.runtimeCluster] = [d];
     }
 
-    return runtimeCenters[bucketIndex].x;
+    // return runtimeCenters[bucketIndex].x;
+    return runtimeCenters[d.runtimeCluster].x;
   }
 
   function nodeRuntimeYPos(d) {
-    minRuntime = parseInt(runtimeCenters[0].name.split("-")[0]);
-    maxRuntime = parseInt(runtimeCenters[runtimeCenters.length - 1].name.split("-")[1]);
-    binSize = parseInt(runtimeCenters[0].name.split("-")[1] - runtimeCenters[0].name.split("-")[0]);
-    bucketIndex = Math.floor((d.runtime - minRuntime) / binSize);
-    if (bucketIndex > 8) bucketIndex = 8;
-    return runtimeCenters[bucketIndex].y;
+    // minRuntime = parseInt(runtimeCenters[0].name.split("-")[0]);
+    // maxRuntime = parseInt(runtimeCenters[runtimeCenters.length - 1].name.split("-")[1]);
+    // binSize = parseInt(runtimeCenters[0].name.split("-")[1] - runtimeCenters[0].name.split("-")[0]);
+    // bucketIndex = Math.floor((d.runtime - minRuntime) / binSize);
+    // if (bucketIndex > 8) bucketIndex = 8;
+    // return runtimeCenters[bucketIndex].y;
+    return runtimeCenters[d.runtimeCluster].y;
   }
 
   function nodeBudgetXPos(d) {
-    minBudget = parseInt(budgetCenters[0].name.split("-")[0]);
-    maxBudget = parseInt(budgetCenters[budgetCenters.length - 1].name.split("-")[1]);
-    binSize = parseInt(budgetCenters[0].name.split("-")[1] - budgetCenters[0].name.split("-")[0]);
-    bucketIndex = Math.floor((d.budget - minBudget) / binSize);
-    if (bucketIndex > 8) bucketIndex = 8;
+    // minBudget = parseInt(budgetCenters[0].name.split("-")[0]);
+    // maxBudget = parseInt(budgetCenters[budgetCenters.length - 1].name.split("-")[1]);
+    // binSize = parseInt(budgetCenters[0].name.split("-")[1] - budgetCenters[0].name.split("-")[0]);
+    // bucketIndex = Math.floor((d.budget - minBudget) / binSize);
+    // if (bucketIndex > 8) bucketIndex = 8;
 
-    if (bucketIndex.toString() in clusterData) {
-      clusterData[bucketIndex.toString()].push(d);
+    if (d.budgetCluster in clusterData) {
+      clusterData[d.budgetCluster].push(d);
     } else {
-      clusterData[bucketIndex.toString()] = [d];
+      clusterData[d.budgetCluster] = [d];
     }
 
-    return budgetCenters[bucketIndex].x;
+    // return budgetCenters[bucketIndex].x;
+    return budgetCenters[d.budgetCluster].x;
   }
 
   function nodeBudgetYPos(d) {
-    minBudget = parseInt(budgetCenters[0].name.split("-")[0]);
-    maxBudget = parseInt(budgetCenters[budgetCenters.length - 1].name.split("-")[1]);
-    binSize = parseInt(budgetCenters[0].name.split("-")[1] - budgetCenters[0].name.split("-")[0]);
-    bucketIndex = Math.floor((d.budget - minBudget) / binSize);
-    if (bucketIndex > 8) bucketIndex = 8;
-    return budgetCenters[bucketIndex].y;
+    // minBudget = parseInt(budgetCenters[0].name.split("-")[0]);
+    // maxBudget = parseInt(budgetCenters[budgetCenters.length - 1].name.split("-")[1]);
+    // binSize = parseInt(budgetCenters[0].name.split("-")[1] - budgetCenters[0].name.split("-")[0]);
+    // bucketIndex = Math.floor((d.budget - minBudget) / binSize);
+    // if (bucketIndex > 8) bucketIndex = 8;
+    // return budgetCenters[bucketIndex].y;
+
+    return budgetCenters[d.budgetCluster].y;
   }
 
   function nodeReleaseMonthXPos(d) {
@@ -566,26 +603,28 @@ function bubbleChart() {
   }
 
   function nodeUserRatingXPos(d) {
-    userRating = 0;
-    if (isNaN(d.userRating)) { userRating = 1; }
-    else if (+d.userRating >= 10) {userRating = 9;}
-    else userRating = Math.floor(+d.userRating);
+    // userRating = 0;
+    // if (isNaN(d.userRating)) { userRating = 1; }
+    // else if (+d.userRating >= 10) {userRating = 9;}
+    // else userRating = Math.floor(+d.userRating);
 
-    if ((userRating - 1).toString() in clusterData) {
-      clusterData[(userRating - 1).toString()].push(d);
+    if (d.userRatingCluster in clusterData) {
+      clusterData[d.userRatingCluster].push(d);
     } else {
-      clusterData[(userRating - 1).toString()] = [d];
+      clusterData[d.userRatingCluster] = [d];
     }
 
-    return userRatingCenters[userRating - 1].x;
+    // return userRatingCenters[userRating - 1].x;
+    return userRatingCenters[d.userRatingCluster].x;
   }
 
   function nodeUserRatingYPos(d) {
-    userRating = 0;
-    if (isNaN(d.userRating)) { userRating = 1; }
-    else if (+d.userRating >= 10) {userRating = 9;}
-    else userRating = Math.floor(+d.userRating);
-    return userRatingCenters[userRating - 1].y;
+    // userRating = 0;
+    // if (isNaN(d.userRating)) { userRating = 1; }
+    // else if (+d.userRating >= 10) {userRating = 9;}
+    // else userRating = Math.floor(+d.userRating);
+    // return userRatingCenters[userRating - 1].y;
+    return userRatingCenters[d.userRatingCluster].y;
   }
 
 

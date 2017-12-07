@@ -88,8 +88,8 @@ function showViz3() {
     }
     hideViz3();
     if (clusters[2].size == 0) {
-      showBase('#viz2Container');
-      $('#tab2').show();
+      showBase('#viz3Container');
+      $('#tab3').show();
     } else {
       var nodes = [];
       for (let cluster of clusters[2]) {
