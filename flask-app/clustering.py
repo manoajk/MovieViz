@@ -11,6 +11,7 @@ from sklearn import metrics
 from scipy.stats import kurtosis,kurtosistest
 from matplotlib import pylab as pl
 from modules import database as db
+import sys
 
 # dtype = {"tconst":str, "titleType":str, "primaryTitle":str, "originalTitle":str, "isAdult": str, "startYear":str, "endYear":str, "runtimeMinutes": str, "genres":str}
 # movieDataFrame = read_csv("data/title.basics.tsv", sep="\t", header=0, dtype=dtype, na_values="\\N")
@@ -33,7 +34,62 @@ KMeansPlusLabels = None
 EMRandLabels = None
 EMKMeansLabels = None
 
-def cluster():
+def clustering():
+	command = "SELECT movies.tconst,ratings.averageRating,`runtimeMinutes`,`Budget($M)` FROM movies INNER JOIN ratings ON movies.tconst=ratings.tconst ORDER BY movies.tconst"
+
+	db.getCursor().execute(command)
+	movies = db.getCursor().fetchall()
+
+	attrs = [[],[],[]]
+	movieIds = []
+	for movie in movies:
+		movieIds.append(movie[0])
+		attrs[0].append([movie[1]])
+		attrs[1].append([movie[2]])
+		attrs[2].append([movie[3]])
+
+	dataDict = {}
+	for i,attr in enumerate(attrs):
+		trials = 1
+		maxSilhouetteScore = -1
+		maxK = 2
+		for k in range(2,11):
+			silhouetteScore = 0
+			for j in range(trials):
+				results = k_means(attr, n_clusters=k, init='random')
+				silhouetteScore += metrics.silhouette_score(attr, results[1], metric='euclidean')
+
+			silhouetteScore /= trials
+			if silhouetteScore > maxSilhouetteScore:
+				maxSilhouetteScore = silhouetteScore
+				maxK = k
+
+		results = k_means(attr, n_clusters=maxK, init='random')
+		labels = results[1]
+		clusters = results[0]
+
+		dataDict[i] = {}
+
+		clustersMin = [sys.maxsize] * maxK
+		clustersMax = [0] * maxK
+		dataDict[i]["clusters"] = []
+		for j, label in enumerate(labels):
+			if attr[j][0] < clustersMin[label]:
+				clustersMin[label] = attr[j][0]
+			if attr[j][0] > clustersMax[label]:
+				clustersMax[label] = attr[j][0]
+
+		for j in range(maxK):
+			dataDict[i]["clusters"].append(str(clustersMin[j]) + " - " + str(clustersMax[j]))
+
+		for j, label in enumerate(labels):
+			dataDict[i][movieIds[j]] = int(label)
+
+	return dataDict
+
+
+
+def clusterCategorical():
 	db.getCursor().execute("SELECT `tconst`,`genres` FROM movies")
 	movies = db.getCursor().fetchall()
 

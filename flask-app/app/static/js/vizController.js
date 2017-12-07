@@ -88,8 +88,8 @@ function showViz3() {
     }
     hideViz3();
     if (clusters[2].size == 0) {
-      showBase('#viz2Container');
-      $('#tab2').show();
+      showBase('#viz3Container');
+      $('#tab3').show();
     } else {
       var nodes = [];
       for (let cluster of clusters[2]) {
@@ -152,6 +152,29 @@ function updateViz1(value) {
       }
       console.log(clusters);
     });
+
+    $('#viz1Container .title').hover(function() {
+      var key = $(this).attr('key')
+      var nodes = clustersDict[key]
+
+      clusterAverages = {}
+
+      d3.nest()
+        .key(function(d) {return 1;})
+        .rollup(function(v) { 
+          clusterAverages= {
+            count: v.length,
+            avgRev: d3.mean(v, function(d) {return d.revenue;}),
+            avgNoms: d3.mean(v, function(d) {return d.nominations;}),
+            avgWins: d3.mean(v, function(d) {return d.wins;}),
+            avgRunT: d3.mean(v, function(d) {return d.runtime;})
+          };
+        })
+        .entries(nodes);
+
+      console.log(clusterAverages)
+    });
+
   }
   
 }
@@ -174,6 +197,28 @@ function updateViz2(value) {
         clusters[2].add($(this).attr('key'));
       }
       console.log(clusters);
+    });
+
+    $('#viz2Container .title').hover(function() {
+      var key = $(this).attr('key')
+      var nodes = clustersDict[key]
+
+      clusterAverages = {}
+
+      d3.nest()
+        .key(function(d) {return 1;})
+        .rollup(function(v) { 
+          clusterAverages= {
+            count: v.length,
+            avgRev: d3.mean(v, function(d) {return d.revenue;}),
+            avgNoms: d3.mean(v, function(d) {return d.nominations;}),
+            avgWins: d3.mean(v, function(d) {return d.wins;}),
+            avgRunT: d3.mean(v, function(d) {return d.runtime;})
+          };
+        })
+        .entries(nodes);
+
+      console.log(clusterAverages)
     });
   }
   

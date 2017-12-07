@@ -36,12 +36,11 @@ def getCursor():
     return g.cursor
 
 def getAllMovies():
-    getCursor().execute("SELECT * FROM movies")
+    getCursor().execute("SELECT * FROM movies INNER JOIN ratings ON movies.tconst=ratings.tconst")
     movies = getCursor().fetchall()
 
     movieList = []
     i = 0
-    movieIndex = {}
     for movie in movies:
         movieDict = {}
         movieDict['budget'] = movie[4]
@@ -64,6 +63,7 @@ def getAllMovies():
         movieDict['tconst'] = movie[0]
         movieDict['wins'] = movie[15]
         movieDict['nominations'] = movie[16]
+        movieDict['userRating'] = movie[18]
 
         for key, value in movieDict.items():
             if value is None and isinstance(value, str):
@@ -73,16 +73,15 @@ def getAllMovies():
 
         if movieDict['genre1'] != '':
             movieList.append(movieDict)
-            movieIndex[movieDict['tconst']] = i
             i+=1
 
-    getCursor().execute("SELECT * FROM ratings")
-    ratings = getCursor().fetchall()
+    # getCursor().execute("SELECT * FROM ratings")
+    # ratings = getCursor().fetchall()
 
-    for rating in ratings:
-        tconst = rating[0]
-        if tconst in movieIndex:
-            movieList[movieIndex[tconst]]['userRating'] = rating[1]
+    # for rating in ratings:
+    #     tconst = rating[0]
+    #     if tconst in movieIndex:
+    #         movieList[movieIndex[tconst]]['userRating'] = rating[1]
 
     return movieList
 
