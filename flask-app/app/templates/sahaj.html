@@ -2,14 +2,20 @@
 <html>
 <head>
 	<title></title>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="static/css/reset.css">
+  	<link rel="stylesheet" href="static/css/bubble_chart.css">
+  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
 
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  	<!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 </head>
 <body>
 	<div id="nav">
 		<div id="tab1" style="display:inline-block;">
 			<h2>Tab 1</h2>
-			<select id="attribute1">
+			<select id="attribute1" class="form-control">
 				<option value="-1">Choose an Attribute</option>
 				{% for attribute in attributes%}
 				<option value="{{loop.index0}}">{{attribute}}</option>
@@ -18,7 +24,7 @@
 		</div>
 		<div id="tab2" style="display:inline-block;">
 			<h2>Tab 2</h2>
-			<select id="attribute2">
+			<select id="attribute2" class="form-control">
 				<option value="-1">Choose an Attribute</option>
 				{% for attribute in attributes%}
 				<option value="{{loop.index0}}">{{attribute}}</option>
@@ -27,7 +33,7 @@
 		</div>
 		<div id="tab3" style="display:inline-block;">
 			<h2>Tab 3</h2>
-			<select id="attribute3">
+			<select id="attribute3" class="form-control">
 				<option value="-1">Choose an Attribute</option>
 				{% for attribute in attributes%}
 				<option value="{{loop.index0}}">{{attribute}}</option>
@@ -47,140 +53,14 @@
 		</div>
 	</div>
 
-	<script>
-		var attributes = {{ attributes|safe }};
+	<script src="static/js/d3.js"></script>
+ 	<script src="static/js/tooltip.js"></script>
+ 	<script src="static/js/bubble_chart.js"></script>
+ 	<script type="text/javascript">
+ 		var attributes = {{ attributes|safe }};
+ 	</script>
+ 	<script src="static/js/vizController.js"></script>
 
-		console.log(attributes)
-
-		function showViz1() {
-			$('#viz2Container').hide();
-			$('#viz3Container').hide();
-			$('#viz1Container').show();
-		}
-
-		function showViz2() {
-			$('#viz1Container').hide();
-			$('#viz3Container').hide();
-			$('#viz2Container').show();
-		}
-
-		function showViz3() {
-			$('#viz1Container').hide();
-			$('#viz2Container').hide();
-			$('#viz3Container').show();
-		}
-
-		function baseViz1() {
-
-			$('#viz1').text('Base Viz 1')
-		}
-
-		function baseViz2() {
-
-			$('#viz2').text('Base Viz 2')
-		}
-
-		function baseViz3() {
-
-			$('#viz3').text('Base Viz 3')
-		}
-
-		function updateViz1(value) {
-			$('#viz1').text('Viz 1 updated based on ' + attributes[value])
-		}
-
-		function updateViz2(value) {
-			
-			$('#viz2').text('Viz 2 updated based on ' + attributes[value])
-		}
-
-		function updateViz3(value) {
-			
-			$('#viz3').text('Viz 3 updated based on ' + attributes[value])
-		}
-
-
-		$('#attribute1').change(function() {
-			var selectedValue = $(this).val();
-			if (selectedValue == -1) {
-				$('#tab2').hide();
-				$('#tab3').hide();
-
-				$('#attribute2').val('-1');
-				$('#attribute3').val('-1');
-
-				baseViz2();
-				baseViz3();
-
-				showViz1()
-				baseViz1();
-			} else {
-				$('#tab2').show();
-
-				showViz1();
-				updateViz1(selectedValue);
-			}
-		});
-
-		$('#attribute2').change(function() {
-			var selectedValue = $(this).val();
-			if (selectedValue == -1) {
-				$('#tab3').hide();
-
-				$('#attribute3').val('-1');
-
-				baseViz3();
-
-				showViz2();
-				baseViz2();
-			} else {
-				$('#tab3').show();
-
-				showViz2();
-				updateViz2(selectedValue);
-
-			}
-		});
-
-		$('#attribute3').change(function() {
-			var selectedValue = $(this).val();
-			if (selectedValue == -1) {
-
-				showViz3();
-				baseViz3();
-			} else {
-
-				showViz3();
-				updateViz3(selectedValue);
-
-			}
-		});
-
-		$('#tab1').click(function() {
-			showViz1();
-		})
-
-		$('#tab2').click(function() {
-			showViz2();
-		})
-
-		$('#tab3').click(function() {
-			showViz3();
-		})
-
-		
-		$('#tab1').show();
-		$('#tab2').hide();
-		$('#tab3').hide();
-
-		showViz1();
-
-		baseViz1();
-		baseViz2();
-		baseViz3();
-		
-
-	</script>
 	
 </body>
 </html>

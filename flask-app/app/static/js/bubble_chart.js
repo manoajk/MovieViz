@@ -7,10 +7,11 @@
  * https://bost.ocks.org/mike/chart/
  *
  */
+
 function bubbleChart() {
   // Constants for sizing
-  var width = 2100;
-  var height = 1400;
+  var width = 2800;
+  var height = 2100;
 
   // tooltip for mouseover functionality
   var tooltip = floatingTooltip('gates_tooltip', 240);
@@ -19,11 +20,11 @@ function bubbleChart() {
   // on which view mode is selected.
   var center = { x: width / 2, y: height / 2 };
 
-  var yearCenters = {
-    2005: { x: width / 3, y: height / 2 },
-    2010: { x: width / 2, y: height / 2 },
-    2016: { x: 2 * width / 3, y: height / 2 }
-  };
+  // var yearCenters = {
+  //   2005: { x: width / 3, y: height / 2 },
+  //   2010: { x: width / 2, y: height / 2 },
+  //   2016: { x: 2 * width / 3, y: height / 2 }
+  // };
 
   var genreCenters = {
     Thriller: {x: width/5, y:height/5},
@@ -44,31 +45,53 @@ function bubbleChart() {
     Family: {x: 4*width/5, y: 4*height/5}
   };
 
-  var genreTitlePositions = {
-    Thriller: {x: 353, y:82},
-    'Sci-Fi': {x: 802, y:82},
-    Romance: {x: 1291, y:72},
-    Mystery: {x: 1776, y:82},
-    Horror: {x: 353, y: 345},
-    Fantasy: {x: 802, y: 355},
-    Drama: {x: 1291, y: 278},
-    Documentary: {x: 1776, y: 355},
-    Crime: {x: 353, y: 666},
-    Comedy: {x: 802, y: 603},
-    Biography: {x: 1291, y: 800},
-    Adventure: {x: 1776, y: 675},
+  var genreTitlePositions = {};/*{
+    Thriller: {x: 353, y:182},
+    'Sci-Fi': {x: 802, y:182},
+    Romance: {x: 1291, y:173},
+    Mystery: {x: 1726, y:202},
+    Horror: {x: 353, y: 405},
+    Fantasy: {x: 802, y: 455},
+    Drama: {x: 1291, y: 411},
+    Documentary: {x: 1726, y: 585},
+    Crime: {x: 353, y: 706},
+    Comedy: {x: 802, y: 693},
+    Biography: {x: 1291, y: 780},
+    Adventure: {x: 1717, y: 723},
     Action: {x: 353, y: 1010},
-    Western: {x: 802, y: 1210},
+    Western: {x: 842, y: 1210},
     Animation: {x: 1291, y: 1210},
-    Family: {x: 1776, y: 1210}
+    Family: {x: 1676, y: 1210}
+  };*/
+
+  var releaseMonthCenters = {
+    Jan: {x: width/5, y:height/4},
+    Feb: {x: 2*width/5, y:height/4},
+    Mar: {x: 3*width/5, y:height/4},
+    Apr: {x: 4*width/5, y:height/4},
+    May: {x: width/5, y: 2*height/4},
+    Jun: {x: 2*width/5, y: 2*height/4},
+    Jul: {x: 3*width/5, y: 2*height/4},
+    Aug: {x: 4*width/5, y: 2*height/4},
+    Sep: {x: width/5, y: 3*height/4},
+    Oct: {x: 2*width/5, y: 3*height/4},
+    Nov: {x: 3*width/5, y: 3*height/4},
+    Dec: {x: 4*width/5, y: 3*height/4},
   };
 
-  // X locations of the year titles.
-  var yearsTitleX = {
-    2005: 160,
-    2010: width / 2,
-    2016: width - 160
-  };
+  var releaseMonthTitlePositions = {};
+
+  var runtimeCenters = [];
+
+  var runtimeTitlePositions = {};
+
+  var budgetCenters = [];
+
+  var budgetTitlePositions = {};
+
+  var userRatingCenters = [];
+
+  var userRatingTitlePositions = {};
 
   // @v4 strength to apply to the position forces
   var forceStrength = 0.1;
@@ -77,6 +100,8 @@ function bubbleChart() {
   var svg = null;
   var bubbles = null;
   var nodes = [];
+  var attributes = ['genre', 'runtime', 'userRating', 'mpaaRating', 'principleCast', 'releaseMonth', 'filmingLocation', 'budget'];
+  var selectedAttribute = attributes[0];
 
   // Charge function that is called for each node.
   // As part of the ManyBody force.
@@ -137,21 +162,21 @@ function bubbleChart() {
 
     var minAmount = d3.min(rawData, function(d) {return +(d.wins + 0.5*d.nominations); });
 
-    var maxAmount2 = d3.max(rawData, function (d) { return +d.revenue; });
+    var maxAmount2 = d3.max(rawData, function (d) { return +d.revenue - (+d.budget); });
 
-    var minAmount2 = d3.min(rawData, function(d) {return +d.revenue; });
+    var minAmount2 = d3.min(rawData, function(d) {return +d.revenue - (+d.budget); });
 
-
+    //var clusterInformation = gatherClusterInformation(rawData, selectedAttribute);
 
     // Sizes bubbles based on area.
     // @v4: new flattened scale names.
     var radiusScale = d3.scalePow()
       .exponent(0.5)
-      .range([2, 20])
+      .range([2, 30])
       .domain([minAmount2, maxAmount2]);
 
     var fillColor = d3.scaleLinear()
-    .domain([minAmount, maxAmount])
+    .domain([0, maxAmount])
     .range(['orange',  'purple']);
 
     // Use map() to convert raw data into node data.
@@ -161,13 +186,18 @@ function bubbleChart() {
       return {
         id: d.tconst,
         year: +d.startYear,
-        radius: radiusScale(+d.revenue),
+        month: d.month,
+        day: d.day,
+        radius: radiusScale(+d.revenue - (+d.budget)),
         runtime: +d.runtimeMinutes,
         name: d.primaryTitle,
         color: fillColor(+ (d.wins + 0.5*d.nominations)),
         genre1: d.genre1,
+        genre2: d.genre2,
+        genre3: d.genre3,
         wins: +d.wins,
         nominations: +d.nominations,
+        userRating: +d.userRating,
         budget: +d.budget,
         revenue: +d.revenue,
         x: Math.random() * 900,
@@ -182,6 +212,143 @@ function bubbleChart() {
   }
 
   /*
+   * This data manipulation function takes the raw data from
+   * the CSV file and converts it into an array of node objects.
+   * Each node will store data and visualization values to visualize
+   * a bubble.
+   *
+   * rawData is expected to be an array of data objects, read in from
+   * one of d3's loading functions like d3.csv.
+   *
+   * This function returns the new node array, with a node in that
+   * array for each element in the rawData input.
+   */
+  function createNodesFromNodes(nodeData) {
+    // Use the max total_amount in the data as the max in the scale's domain
+    // note we have to ensure the total_amount is a number.
+    var maxAmount = d3.max(nodeData, function (d) { return +(d.wins + 0.5*d.nominations); });
+
+    var minAmount = d3.min(nodeData, function(d) {return +(d.wins + 0.5*d.nominations); });
+
+    var maxAmount2 = d3.max(nodeData, function (d) { return +d.revenue - (+d.budget); });
+
+    var minAmount2 = d3.min(nodeData, function(d) {return +d.revenue - (+d.budget); });
+
+    //var clusterInformation = gatherClusterInformation(rawData, selectedAttribute);
+
+    // Sizes bubbles based on area.
+    // @v4: new flattened scale names.
+    var radiusScale = d3.scalePow()
+      .exponent(0.5)
+      .range([2, 30])
+      .domain([minAmount2, maxAmount2]);
+
+    var fillColor = d3.scaleLinear()
+    .domain([0, maxAmount])
+    .range(['orange',  'purple']);
+
+    // Use map() to convert raw data into node data.
+    // Checkout http://learnjsdata.com/ for more on
+    // working with data.
+    var myNodes = nodeData.map(function (d) {
+      return {
+        id: d.id,
+        year: +d.year,
+        month: d.month,
+        day: d.day,
+        radius: radiusScale(+d.revenue - (+d.budget)),
+        runtime: +d.runtime,
+        name: d.name,
+        color: fillColor(+ (d.wins + 0.5*d.nominations)),
+        genre1: d.genre1,
+        genre2: d.genre2,
+        genre3: d.genre3,
+        wins: +d.wins,
+        nominations: +d.nominations,
+        userRating: +d.userRating,
+        budget: +d.budget,
+        revenue: +d.revenue,
+        x: Math.random() * 900,
+        y: Math.random() * 800
+      };
+    });
+
+    // sort them to prevent occlusion of smaller nodes.
+    myNodes.sort(function (a, b) { return b.revenue - a.revenue; });
+
+    return myNodes;
+  }
+
+  function gatherClusterInformation(rawData, selectedAttribute) {
+    clusterInfo = [];
+
+    switch(selectedAttribute) {
+      case 'genre':
+        clusterInfo = d3.nest()
+        .key(function(d) {return d.genre1;})
+        .rollup(function(v) {return {
+          count: v.length,
+          avgRev: d3.mean(v, function(d) {return d.revenue;}),
+          avgNoms: d3.mean(v, function(d) {return d.nominations;}),
+          avgWins: d3.mean(v, function(d) {return d.wins;}),
+          avgRunT: d3.mean(v, function(d) {return d.runtimeMinutes;})
+        };  })
+        .entries(rawData);
+      case 'runtime':
+        clusterInfo = d3.nest()
+      default:
+        console.log("default clause in switch case");
+    }
+    console.log(clusterInfo);
+  }
+
+  function createAllCenters(rawData) {
+
+    runtimeMax = d3.max(rawData, function(d) {return +d.runtime;});
+    runtimeMin = d3.min(rawData, function(d) {return +d.runtime;});
+
+    budgetMin = d3.min(rawData, function(d) {return +d.budget;});
+    budgetMax = d3.max(rawData, function(d) {return +d.budget;});
+
+    budgetBuckets = createBuckets(budgetMax, budgetMin, 9);
+    runtimeBuckets = createBuckets(runtimeMax, runtimeMin, 9);
+
+    i = 1
+    for (genre in genreCenters) {
+      genreTitlePositions[genre] = {x: genreCenters[genre].x, y: i <= 10 ? genreCenters[genre].y - 235 : i > 13 ? genreCenters[genre].y - 50 : genreCenters[genre].y - 140, key: genre};
+      i+=1;
+    }
+
+    i = 1;
+    for (month in releaseMonthCenters) {
+      releaseMonthTitlePositions[month] = {x: releaseMonthCenters[month].x, y: i <= 8 ? releaseMonthCenters[month].y - 220 : releaseMonthCenters[month].y - 100, key: month};
+      i+=1;
+    }
+
+    for (i = 0; i < runtimeBuckets.length; i++) {
+      userRatingCenters.push({x: (i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
+      userRatingTitlePositions[String(i + 1) + " stars"] = {x: userRatingCenters[i].x, y: i > 6 ? userRatingCenters[i].y - 50 : userRatingCenters[i].y - 280, key: i};
+
+      runtimeCenters.push({name: runtimeBuckets[i], x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
+      runtimeTitlePositions[runtimeBuckets[i] + " mins"] = {x: runtimeCenters[i].x, y: i > 4 ? runtimeCenters[i].y - 50 : runtimeCenters[i].y - 300, key: i};
+
+      budgetCenters.push({name: budgetBuckets[i], x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4});
+      budgetTitlePositions[budgetBuckets[i] + " ($M)"] = {x: budgetCenters[i].x, y: i > 2 ? budgetCenters[i].y - 50 : budgetCenters[i].y - 340, key: i};
+    }
+  }
+
+  function createBuckets(maxVal, minVal, numBuckets) {
+    bucketRange = Math.floor((maxVal - minVal) / numBuckets);
+    buckets = [];
+    minVal = Math.floor(minVal);
+    buckets.push(String(minVal) + '-' + String(bucketRange + minVal));
+    for (i = 1; i < numBuckets - 1; i++) {
+      buckets.push(String(bucketRange*i + minVal + 1) + '-' + String(bucketRange*(i+1) + minVal));
+    }
+    buckets.push((bucketRange*(i) + minVal + 1) + '-' + String(maxVal));
+    return buckets;
+  }
+  /*
    * Main entry point to the bubble chart. This function is returned
    * by the parent closure. It prepares the rawData for visualization
    * and adds an svg element to the provided selector and starts the
@@ -194,10 +361,15 @@ function bubbleChart() {
    * rawData is expected to be an array of data objects as provided by
    * a d3 loading function like d3.csv.
    */
-  var chart = function chart(selector, rawData) {
-    // convert raw data into nodes data
-    console.log(rawData)
-    nodes = createNodes(rawData);
+  var chart = function chart(selector, rawData, nodeData) {
+    if (nodeData == null) {
+      // convert raw data into nodes data
+      nodes = createNodes(rawData);
+    } else {
+      nodes = createNodesFromNodes(nodeData);
+    }
+
+    createAllCenters(nodes);
 
     // Create a SVG element inside the provided selector
     // with desired size.
@@ -222,7 +394,8 @@ function bubbleChart() {
       .attr('stroke', function (d) { return d3.rgb(d.color).darker(); })
       .attr('stroke-width', 2)
       .on('mouseover', showDetail)
-      .on('mouseout', hideDetail);
+      .on('mouseout', hideDetail)
+      .on('click', clusterClicked);
 
     // @v4 Merge the original empty selection and the enter selection
     bubbles = bubbles.merge(bubblesE);
@@ -241,6 +414,61 @@ function bubbleChart() {
     groupBubbles();
   };
 
+    /*
+   * Function called on mouseover to display the
+   * details of a bubble in the tooltip.
+   */
+  function showDetail(d) {
+    // change outline to indicate hover state.
+    d3.select(this).attr('stroke', 'black');
+
+    var content = '<span class="name">Title: </span><span class="value">' +
+                  d.name +
+                  '</span><br/>' +
+                  '<span class="name">Genres: </span><span class="value">' +
+                  addCommas(d.genre1 + " " + d.genre2 + " " + d.genre3) +
+                  '</span><br/>' +
+                  '<span class="name">Revenue($M): </span><span class="value">' +
+                  truncate(d.revenue) +
+                  '</span><br/>' +
+                  '<span class="name">Budget($M): </span><span class="value">' +
+                  d.budget + 
+                  '</span><br/>' +
+                  '<span class="name">IMDB Rating: </span><span class="value">' +
+                  d.userRating + 
+                  '</span><br/>' +
+                  '<span class="name">Runtime (Mins): </span><span class="value">' +
+                  d.runtime + 
+                  '</span><br/>' +
+                  '<span class="name">Nominations: </span><span class="value">' +
+                  d.nominations + 
+                  '</span><br/>' +                 
+                  '<span class="name">Wins: </span><span class="value">' +
+                  d.wins + 
+                  '</span>';
+
+
+    tooltip.showTooltip(content, d3.event);
+  }
+
+  /*
+   * Hides tooltip
+   */
+  function hideDetail(d) {
+    // reset outline
+    d3.select(this)
+      .attr('stroke', d3.rgb(d.color).darker());
+
+    tooltip.hideTooltip();
+  }
+
+  function clusterClicked(d) {
+    console.log()
+  }
+
+  var clusterData = {}
+  var clusterInfo = {}
+
   /*
    * Callback function that is called after every tick of the
    * force simulation.
@@ -254,24 +482,15 @@ function bubbleChart() {
       .attr('cy', function (d) { return d.y; });
   }
 
-  /*
-   * Provides a x value for each node to be used with the split by year
-   * x force.
-   */
-  function nodeYearPos(d) {
-    var yr;
-    if (d.year <= 2005) {
-      yr = 2005;
-    } else if (d.year <= 2010) {
-      yr = 2010;
-    } else {
-      yr = 2016;
-    }
-    return yearCenters[yr].x;
-  }
 
   function nodeGenreXPos(d) {
-    console.log(d);
+    //console.log(d);
+    if (d.genre1 in clusterData) {
+      clusterData[d.genre1].push(d);
+    } else {
+      clusterData[d.genre1] = [d];
+    }
+    
     return genreCenters[d.genre1].x;
   }
 
@@ -279,6 +498,104 @@ function bubbleChart() {
     return genreCenters[d.genre1].y;
   }
 
+  function nodeRuntimeXPos(d) {
+    
+
+    minRuntime = parseInt(runtimeCenters[0].name.split("-")[0]);
+    maxRuntime = parseInt(runtimeCenters[runtimeCenters.length - 1].name.split("-")[1]);
+    binSize = parseInt(runtimeCenters[0].name.split("-")[1] - runtimeCenters[0].name.split("-")[0]);
+    bucketIndex = Math.floor((d.runtime - minRuntime) / binSize);
+    if (bucketIndex > 8) bucketIndex = 8;
+
+    if (bucketIndex.toString() in clusterData) {
+      clusterData[bucketIndex.toString()].push(d);
+    } else {
+      clusterData[bucketIndex.toString()] = [d];
+    }
+
+    return runtimeCenters[bucketIndex].x;
+  }
+
+  function nodeRuntimeYPos(d) {
+    minRuntime = parseInt(runtimeCenters[0].name.split("-")[0]);
+    maxRuntime = parseInt(runtimeCenters[runtimeCenters.length - 1].name.split("-")[1]);
+    binSize = parseInt(runtimeCenters[0].name.split("-")[1] - runtimeCenters[0].name.split("-")[0]);
+    bucketIndex = Math.floor((d.runtime - minRuntime) / binSize);
+    if (bucketIndex > 8) bucketIndex = 8;
+    return runtimeCenters[bucketIndex].y;
+  }
+
+  function nodeBudgetXPos(d) {
+    minBudget = parseInt(budgetCenters[0].name.split("-")[0]);
+    maxBudget = parseInt(budgetCenters[budgetCenters.length - 1].name.split("-")[1]);
+    binSize = parseInt(budgetCenters[0].name.split("-")[1] - budgetCenters[0].name.split("-")[0]);
+    bucketIndex = Math.floor((d.budget - minBudget) / binSize);
+    if (bucketIndex > 8) bucketIndex = 8;
+
+    if (bucketIndex.toString() in clusterData) {
+      clusterData[bucketIndex.toString()].push(d);
+    } else {
+      clusterData[bucketIndex.toString()] = [d];
+    }
+
+    return budgetCenters[bucketIndex].x;
+  }
+
+  function nodeBudgetYPos(d) {
+    minBudget = parseInt(budgetCenters[0].name.split("-")[0]);
+    maxBudget = parseInt(budgetCenters[budgetCenters.length - 1].name.split("-")[1]);
+    binSize = parseInt(budgetCenters[0].name.split("-")[1] - budgetCenters[0].name.split("-")[0]);
+    bucketIndex = Math.floor((d.budget - minBudget) / binSize);
+    if (bucketIndex > 8) bucketIndex = 8;
+    return budgetCenters[bucketIndex].y;
+  }
+
+  function nodeReleaseMonthXPos(d) {
+
+    if (d.month in clusterData) {
+      clusterData[d.month].push(d);
+    } else {
+      clusterData[d.month] = [d];
+    }
+
+    return releaseMonthCenters[d.month].x;
+  }
+
+  function nodeReleaseMonthYPos(d) {
+    return releaseMonthCenters[d.month].y;
+  }
+
+  function nodeUserRatingXPos(d) {
+    userRating = 0;
+    if (isNaN(d.userRating)) { userRating = 1; }
+    else if (+d.userRating >= 10) {userRating = 9;}
+    else userRating = Math.floor(+d.userRating);
+
+    if ((userRating - 1).toString() in clusterData) {
+      clusterData[(userRating - 1).toString()].push(d);
+    } else {
+      clusterData[(userRating - 1).toString()] = [d];
+    }
+
+    return userRatingCenters[userRating - 1].x;
+  }
+
+  function nodeUserRatingYPos(d) {
+    userRating = 0;
+    if (isNaN(d.userRating)) { userRating = 1; }
+    else if (+d.userRating >= 10) {userRating = 9;}
+    else userRating = Math.floor(+d.userRating);
+    return userRatingCenters[userRating - 1].y;
+  }
+
+
+  chart.getClusterData = function () {
+    return clusterData;
+  }
+
+  chart.getClusterInfo = function () {
+    return clusterInfo;
+  }
 
   /*
    * Sets visualization in "single group mode".
@@ -287,7 +604,9 @@ function bubbleChart() {
    * center of the visualization.
    */
   function groupBubbles() {
-    hideYearTitles();
+    console.log("Grouping bubbles");
+
+    hideTitles();
 
     // @v4 Reset the 'x' force to draw the bubbles to the center.
     simulation.force('x', d3.forceX().strength(forceStrength).x(center.x));
@@ -304,88 +623,91 @@ function bubbleChart() {
    * tick function is set to move nodes to the
    * yearCenter of their data's year.
    */
-  function splitBubbles() {
-    showGenreTitles();
+  function splitBubbles(attr) {
+    clusterData = {}
+    clusterInfo = {}
+    if (attr == "genre") {
+      hideTitles();
+      showTitles(genreTitlePositions);
+      //showYearTitles();
 
-    // @v4 Reset the 'x' force to draw the bubbles to their year centers
-    simulation.force('x', d3.forceX().strength(forceStrength).x(nodeGenreXPos));
-    simulation.force('y', d3.forceY().strength(forceStrength).y(nodeGenreYPos));
+      // @v4 Reset the 'x' force to draw the bubbles to their year centers
+      simulation.force('x', d3.forceX().strength(forceStrength).x(nodeGenreXPos));
+      simulation.force('y', d3.forceY().strength(forceStrength).y(nodeGenreYPos));
 
-    // @v4 We can reset the alpha value and restart the simulation
-    simulation.alpha(1).restart();
+      // @v4 We can reset the alpha value and restart the simulation
+      simulation.alpha(1).restart();
+    } else if (attr == "runtime") {
+      hideTitles();
+      showTitles(runtimeTitlePositions);
+
+      // @v4 Reset the 'x' force to draw the bubbles to their year centers
+      simulation.force('x', d3.forceX().strength(forceStrength).x(nodeRuntimeXPos));
+      simulation.force('y', d3.forceY().strength(forceStrength).y(nodeRuntimeYPos));
+
+      // @v4 We can reset the alpha value and restart the simulation
+      simulation.alpha(1).restart();
+    } else if (attr == "budget") {
+      hideTitles();
+      showTitles(budgetTitlePositions);
+
+      // @v4 Reset the 'x' force to draw the bubbles to their year centers
+      simulation.force('x', d3.forceX().strength(forceStrength).x(nodeBudgetXPos));
+      simulation.force('y', d3.forceY().strength(forceStrength).y(nodeBudgetYPos));
+
+      // @v4 We can reset the alpha value and restart the simulation
+      simulation.alpha(1).restart();
+    } else if (attr == "releaseMonth") {
+      hideTitles();
+      showTitles(releaseMonthTitlePositions);
+
+      // @v4 Reset the 'x' force to draw the bubbles to their year centers
+      simulation.force('x', d3.forceX().strength(forceStrength).x(nodeReleaseMonthXPos));
+      simulation.force('y', d3.forceY().strength(forceStrength).y(nodeReleaseMonthYPos));
+
+      // @v4 We can reset the alpha value and restart the simulation
+      simulation.alpha(1).restart();
+    } else if (attr == "userRating") {
+      hideTitles(); 
+      showTitles(userRatingTitlePositions);
+
+      // @v4 Reset the 'x' force to draw the bubbles to their year centers
+      simulation.force('x', d3.forceX().strength(forceStrength).x(nodeUserRatingXPos));
+      simulation.force('y', d3.forceY().strength(forceStrength).y(nodeUserRatingYPos));
+
+      // @v4 We can reset the alpha value and restart the simulation
+      simulation.alpha(1).restart();
+    }
   }
 
   /*
    * Hides Year title displays.
    */
-  function hideYearTitles() {
-    svg.selectAll('.year').remove();
+  function hideTitles() {
+    svg.selectAll('.title').remove();
   }
 
-  /*
-   * Shows Year title displays.
-   */
-  function showYearTitles() {
+  function showTitles(titlePositions) {
     // Another way to do this would be to create
     // the year texts once and then just hide them.
-    var yearsData = d3.keys(yearsTitleX);
-    var years = svg.selectAll('.year')
-      .data(yearsData);
-
-    years.enter().append('text')
-      .attr('class', 'year')
-      .attr('x', function (d) { return yearsTitleX[d]; })
-      .attr('y', 40)
-      .attr('text-anchor', 'middle')
-      .text(function (d) { return d; });
-  }
-
-  function showGenreTitles() {
-    // Another way to do this would be to create
-    // the year texts once and then just hide them.
-    var genreData = d3.keys(genreTitlePositions);
-    var genres = svg.selectAll('.year')
+    var genreData = d3.keys(titlePositions);
+    var genres = svg.selectAll('.title')
       .data(genreData);
 
     genres.enter().append('text')
-      .attr('class', 'year')
-      .attr('x', function (d) { return genreTitlePositions[d].x; })
-      .attr('y', function (d) { return genreTitlePositions[d].y; })
+      .attr('class', 'title')
+      .attr('key', function (d) { return titlePositions[d].key; })
+      .attr('x', function (d) { return titlePositions[d].x; })
+      .attr('y', function (d) { return titlePositions[d].y; })
       .attr('text-anchor', 'middle')
       .text(function (d) { return d; });
   }
 
-
-  /*
-   * Function called on mouseover to display the
-   * details of a bubble in the tooltip.
-   */
-  function showDetail(d) {
-    // change outline to indicate hover state.
-    d3.select(this).attr('stroke', 'black');
-
-    var content = '<span class="name">Title: </span><span class="value">' +
-                  d.name +
-                  '</span><br/>' +
-                  '<span class="name">Amount: </span><span class="value">' +
-                  addCommas(d.genre1) +
-                  '</span><br/>' +
-                  '<span class="name">Year: </span><span class="value">' +
-                  d.year +
-                  '</span>';
-
-    tooltip.showTooltip(content, d3.event);
-  }
-
-  /*
-   * Hides tooltip
-   */
-  function hideDetail(d) {
-    // reset outline
-    d3.select(this)
-      .attr('stroke', d3.rgb(d.color).darker());
-
-    tooltip.hideTooltip();
+  function truncate(num) {
+    num = num.toString(); //If it's not already a String
+    num = num.slice(0, (num.indexOf("."))+3); //With 3 exposing the hundredths place
+    Number(num);
+    return num;
   }
 
   /*
@@ -396,10 +718,10 @@ function bubbleChart() {
    * displayName is expected to be a string and either 'year' or 'all'.
    */
   chart.toggleDisplay = function (displayName) {
-    if (displayName === 'year') {
-      splitBubbles();
-    } else {
+    if (displayName === 'all') {
       groupBubbles();
+    } else {
+      splitBubbles(displayName);
     }
   };
 
@@ -409,74 +731,99 @@ function bubbleChart() {
 }
 
 /*
- * Below is the initialization code as well as some helper functions
- * to create a new bubble chart instance, load the data, and display it.
- */
-
-var myBubbleChart = bubbleChart();
-
-/*
- * Function called once data is loaded from CSV.
- * Calls bubble chart function to display inside #vis div.
- */
-function display(error, data) {
-  if (error) {
-    console.log(error);
-  }
-
-  console.log(data)
-  myBubbleChart('#vis', data);
-}
-
-/*
- * Sets up the layout buttons to allow for toggling between view modes.
- */
-function setupButtons() {
-  d3.select('#toolbar')
-    .selectAll('.button')
-    .on('click', function () {
-      // Remove active class from all buttons
-      d3.selectAll('.button').classed('active', false);
-      // Find the button just clicked
-      var button = d3.select(this);
-
-      // Set it as the active button
-      button.classed('active', true);
-
-      // Get the id of the button
-      var buttonId = button.attr('id');
-
-      // Toggle the bubble chart based on
-      // the currently clicked button.
-      myBubbleChart.toggleDisplay(buttonId);
-    });
-}
-
-/*
  * Helper function to convert a number into a string
  * and add commas to it to improve presentation.
  */
 function addCommas(nStr) {
-  nStr += '';
-  var x = nStr.split('.');
+  var x = nStr.split(' ');
   var x1 = x[0];
-  var x2 = x.length > 1 ? '.' + x[1] : '';
-  var rgx = /(\d+)(\d{3})/;
-  while (rgx.test(x1)) {
-    x1 = x1.replace(rgx, '$1' + ',' + '$2');
-  }
+  var x2 = x.length > 1 ? ', ' + x[1] : '';
+  var x3 = x.length > 2 ? ', ' + x[2] : '';
 
-  return x1 + x2;
+  return x1 + x2 + x3;
 }
 
-// Load the data.
-// d3.csv('data/movies.csv', display);
-$.getJSON('/getAllMovies', function(data, error) {
+function gatherClusterInformation(rawData, selectedAttribute) {
+    clusterInfo = [];
+    clusterData = {};
 
-  display(error, data);
-  // setup the buttons.
-  setupButtons();
-});
+    switch(selectedAttribute) {
+      case 'genre':
+        d3.nest()
+        .key(function(d) {return d.genre1;})
+        .rollup(function(v) { 
+          clusterDict = {};
+          clusterDict[v[0].genre1] = {
+            count: v.length,
+            avgRev: d3.mean(v, function(d) {return d.revenue;}),
+            avgNoms: d3.mean(v, function(d) {return d.nominations;}),
+            avgWins: d3.mean(v, function(d) {return d.wins;}),
+            avgRunT: d3.mean(v, function(d) {return d.runtimeMinutes;})
+          };
+          clusterInfo.push(clusterDict);
 
+          clusterData[v[0].genre1] = v;
 
+        })
+        .entries(rawData);
+      case 'userRating':
+        d3.nest()
+        .key(function(d) {
+          userRating = 0;
+          if (isNaN(d.userRating)) { userRating = 1; }
+          else if (+d.userRating >= 10) {userRating = 9;}
+          else userRating = Math.floor(+d.userRating);
+          return userRating;
+        })
+        .rollup(function(v) { 
+          clusterDict = {};
+          userRating = 0;
+          if (isNaN(d.userRating)) { userRating = 1; }
+          else if (+d.userRating >= 10) {userRating = 9;}
+          else userRating = Math.floor(+d.userRating);
+          clusterDict[userRating + ' stars'] = {
+            count: v.length,
+            avgRev: d3.mean(v, function(d) {return d.revenue;}),
+            avgNoms: d3.mean(v, function(d) {return d.nominations;}),
+            avgWins: d3.mean(v, function(d) {return d.wins;}),
+            avgRunT: d3.mean(v, function(d) {return d.runtimeMinutes;})
+          };
+          clusterInfo.push(clusterDict);
 
+          clusterData[userRating + ' stars'] = v;
+
+        })
+        .entries(rawData);
+      case 'runtime':
+        d3.nest()
+        .key(function(d) {
+          userRating = 0;
+          if (isNaN(d.userRating)) { userRating = 1; }
+          else if (+d.userRating >= 10) {userRating = 9;}
+          else userRating = Math.floor(+d.userRating);
+          return userRating;
+        })
+        .rollup(function(v) { 
+          clusterDict = {};
+          userRating = 0;
+          if (isNaN(d.userRating)) { userRating = 1; }
+          else if (+d.userRating >= 10) {userRating = 9;}
+          else userRating = Math.floor(+d.userRating);
+          clusterDict[userRating + ' stars'] = {
+            count: v.length,
+            avgRev: d3.mean(v, function(d) {return d.revenue;}),
+            avgNoms: d3.mean(v, function(d) {return d.nominations;}),
+            avgWins: d3.mean(v, function(d) {return d.wins;}),
+            avgRunT: d3.mean(v, function(d) {return d.runtimeMinutes;})
+          };
+          clusterInfo.push(clusterDict);
+
+          clusterData[userRating + ' stars'] = v;
+
+        })
+        .entries(rawData);
+      default:
+        console.log("default clause in switch case");
+    }
+    return {'clusterInfo':clusterInfo, 'clusterData': clusterData};
+  }

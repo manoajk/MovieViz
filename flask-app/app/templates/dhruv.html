@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<script src="../d3.js"></script>
+<script src="static/js/d3.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <style>
 
 path.link {
@@ -51,7 +52,7 @@ cellSize = 17;
 
 var formatPercent = d3.format(".1%");
 
-var color = d3.scaleLinear().domain([0, 4]).range(["yellow", "red"]);
+var color = d3.scaleLinear().domain([0, 4]).range(["orange", "purple"]);
 
 var main_svg = d3.select("body")
 	.append("svg")
@@ -64,7 +65,7 @@ var div = d3.select("body").append("div")
 
 var svg = main_svg
   .selectAll("svg")
-  .data(d3.range(2000, 2018))
+  .data(d3.range(2000, 2017))
   .enter().append("g")
     .attr("width", width)
     .attr("height", height)
@@ -78,16 +79,25 @@ svg.append("text")
     .attr("text-anchor", "middle")
     .text(function(d) { return d; });
 
+function x_calc(d) {
+  return d3.timeWeek.count(d3.timeYear(d), d) * cellSize;
+};
+
+function y_calc(d) {
+  return d.getDay() * cellSize;
+};
+
+
 var rect = svg.append("g")
-    .attr("fill", "none")
+    .attr("fill", "orange")
     .attr("stroke", "#ccc")
   .selectAll("rect")
   .data(function(d) { output = d3.timeDays(new Date(d, 0, 1), new Date(d + 1, 0, 1)); return output;})
   .enter().append("rect")
     .attr("width", cellSize)
     .attr("height", cellSize)
-    .attr("x", function(d) { output = d3.timeWeek.count(d3.timeYear(d), d) * cellSize; console.log("Date = " + d + "\nX = " + output); return output;   })
-    .attr("y", function(d) { return d.getDay() * cellSize; })
+    .attr("x", function(d) { output = x_calc(d); return output;   })
+    .attr("y", function(d) { return y_calc(d); })
    .datum(d3.timeFormat("%Y-%m-%d"));
 
 svg.append("g")
@@ -104,38 +114,122 @@ var timeFormat = d3.timeFormat("%Y-%m-%d")
 
 var brushCell;
 
+function convert_month(month) {
+  switch (month) {
+    case "Jan": return 0;
+    break;
+    case "Feb": return 1;
+    break;
+    case "Mar": return 2;
+    break;
+    case "Apr": return 3;
+    break;
+    case "May": return 4;
+    break;
+    case "Jun": return 5;
+    break;
+    case "Jul": return 6;
+    break;
+    case "Aug": return 7;
+    break;
+    case "Sep": return 8;
+    break;
+    case "Oct": return 9;
+    break;
+    case "Nov": return 10;
+    break;
+    case "Dec": return 11;
+    break;
+    default: return month;
+  }
+};
+
 var brush = d3.brush()
         .extent([[29, 15], [960, height * 18]])
         .on("start", console.log("started"))
         .on("brush", function(cell) {e = d3.event.selection; console.log(e); console.log(cell.x)})
         .on("end", function(d) {console.log("ended")});
 
-// main_svg.append("g")
-//     .attr("class", "brush")
-//     .call(brush);
+main_svg.append("g")
+    .attr("class", "brush")
+    .call(brush);
+
+function truncate(num) {
+    num = num.toString(); //If it's not already a String
+    num = num.slice(0, (num.indexOf("."))+3); //With 3 exposing the hundredths place
+    Number(num);
+    return num;
+}
+
+function extract_movies(list) {
+  a = [];
+  for (i=0; i < list.length; i++) {
+    a.push(list[i].primaryTitle);
+  }
+  return a;
+}
+
+function getDayName(appDate, seperator){
+
+
+  // Name of the days as Array
+  var dayNameArr = new Array ("Sunday", "Monday", "Tuesday", "Wednesday", "Thrusday", "Friday", "Saturday");
+  var dateArr = appDate.split(seperator); // split the date into array using the date seperator
+  var month = eval(dateArr[1]); 
+  var day = eval(dateArr[2]);
+  var year = eval(dateArr[0]);
+  // Calculate the total number of days, with taking care of leapyear 
+  var totalDays = day + (2*month) + parseInt(3*(month+1)/5) + year + parseInt(year/4) - parseInt(year/100) + parseInt(year/400) + 2;
+  // Mod of the total number of days with 7 gives us the day number
+  var dayNo = (totalDays%7);
+  // if the resultant mod of 7 is 0 then its Saturday so assign the dayNo to 7
+  if(dayNo == 0){
+     dayNo = 7;
+  }
+  return dayNameArr[dayNo-1]; // return the repective Day Name from the array
+
+
+}
 
 
 
-
-d3.tsv("diji.tsv", function(error, data) {
-  if (error) throw error;
+$.getJSON('/getAllMovies', function(data, error) {
 
   dates = []  ;
   dates_count = {};
   dates_to_movies = {};
+  random = [];
 
   data.forEach(function(d) {
-            d.releaseDate = new Date(d.releaseDate);
-            d.releaseDate = timeFormat(d.releaseDate);
-            dates.push(d.releaseDate);
-  			dates_count[d.releaseDate] = dates_count[d.releaseDate] ? dates_count[d.releaseDate] + 1 : 1;
-  			if (dates_to_movies[d.releaseDate]) {
-  				dates_to_movies[d.releaseDate].push(d);
+            // if (d.startYear == 2001 && d.month == "Oct" && d.day == 11) {
+            //   console.log(d);
+            //   random.push(d);
+            // }
+            releaseDate = new Date(d.startYear, convert_month(d.month), d.day);
+            releaseDate = timeFormat(releaseDate);
+            dates.push(releaseDate);
+            if ((d.month == "Feb" || d.month == "Mar" ) && (d.startYear == 2002 || d.startYear == 2003)) {
+              random.push(d);
+            }
+  			dates_count[releaseDate] = dates_count[releaseDate] ? dates_count[releaseDate] + 1 : 1;
+  			if (dates_to_movies[releaseDate]) {
+  				dates_to_movies[releaseDate].push(d);
   			} else {
-  				dates_to_movies[d.releaseDate] = [d];
+  				dates_to_movies[releaseDate] = [d];
   			} 
   			
         });
+
+console.log("Average revenue: " + truncate(d3.mean(random, function(d) {return d.revenue;})));
+console.log("Average runtime: " + truncate(d3.mean(random, function(d) {return d.runtimeMinutes;})));
+console.log("Average number of nominations: " + truncate(d3.mean(random, function(d) {return d.nominations;})));
+console.log("Average number of wins: " + truncate(d3.mean(random, function(d) {return d.wins;})));
+console.log("Number of movies: " + random.length);
+
+  var color = d3.scaleLinear()
+  .domain([-6, d3.max(Object.values(dates_count))]).range(["orange", "purple"]);
+
+  console.log(d3.max(Object.values(dates_count)))
 
   rect.filter(function(d) { output =  dates.indexOf(d) > -1; return output;})
 		.attr("fill", function(d) {return color(dates_count[d]);})
