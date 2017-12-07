@@ -34,19 +34,19 @@ KMeansPlusLabels = None
 EMRandLabels = None
 EMKMeansLabels = None
 
-def clustering():
-	command = "SELECT movies.tconst,ratings.averageRating,`runtimeMinutes`,`Budget($M)` FROM movies INNER JOIN ratings ON movies.tconst=ratings.tconst ORDER BY movies.tconst"
+def clustering(data):
+	# command = "SELECT movies.tconst,ratings.averageRating,`runtimeMinutes`,`Budget($M)` FROM movies INNER JOIN ratings ON movies.tconst=ratings.tconst ORDER BY movies.tconst"
 
-	db.getCursor().execute(command)
-	movies = db.getCursor().fetchall()
+	# db.getCursor().execute(command)
+	# movies = db.getCursor().fetchall()
 
 	attrs = [[],[],[]]
 	movieIds = []
-	for movie in movies:
-		movieIds.append(movie[0])
-		attrs[0].append([movie[1]])
-		attrs[1].append([movie[2]])
-		attrs[2].append([movie[3]])
+	for movie in data:
+		movieIds.append(movie["id"])
+		attrs[0].append([movie["userRating"]])
+		attrs[1].append([movie["runtime"]])
+		attrs[2].append([movie["budget"]])
 
 	dataDict = {}
 	for i,attr in enumerate(attrs):
