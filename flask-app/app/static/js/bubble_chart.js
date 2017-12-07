@@ -325,8 +325,6 @@ function bubbleChart() {
       i+=1;
     }
 
-    console.log(userRatingCenters)
-
     $.getJSON('/cluster', function(data, error){
       console.log("got cluster data")
       
@@ -356,15 +354,11 @@ function bubbleChart() {
         rawData[d]["userRatingCluster"] = userRatingClusters[data["0"][rawData[d].id]]
         rawData[d]["runtimeCluster"] = runtimeClusters[data["1"][rawData[d].id]]
         rawData[d]["budgetCluster"] = budgetClusters[data["2"][rawData[d].id]]
-        console.log(rawData[d].tconst)
-        console.log(rawData[d])
       }
 
       console.log("finished cluster data")
-      console.log(rawData)
     });
 
-    console.log(userRatingCenters)
 
   }
 

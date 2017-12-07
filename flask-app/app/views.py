@@ -57,8 +57,3 @@ def cluster():
 	clusters = clustering()
 	clusterData = json.dumps(clusters)
 	return clusterData
-# def dataset_two():
-# 	data = {
-
-# 	}
-# 	return data

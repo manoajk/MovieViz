@@ -117,7 +117,7 @@ def clusterCategorical():
 
 	print('Done Clustering')
 
-	output_list = []
+	output = []
 	output_dict = {"name": "All Movies"}
 	clusters = {}
 
@@ -148,24 +148,25 @@ def clusterCategorical():
 			clusters[str(label)]['children'] = []
 			clusters[str(label)]['children'].append(dataDict)
 			
-			print("List", clusters[str(label)]['children'])
+			# print("List", clusters[str(label)]['children'])
 
 
 	print(transformedClusters)
 	for i,cluster in enumerate(transformedClusters):
-		print(i)
-		print(cluster)
+		# print(i)
+		# print(cluster)
 		clusters[str(i)]['x'] = cluster[0]
 		clusters[str(i)]['y'] = cluster[1]
 
+	print(clusters)
+	print("CLUSTER!!!")
 	cluster_list = []
 	for cluster_key in clusters:
 		# print("CLUSTER_MANOAJ", cluster, tuple(clusters[cluster_key]))
 		# print("CLUSTER_MANOAJ", type(cluster), type(clusters[cluster_key]))
 		cluster_list.append({str(cluster): tuple(clusters[cluster_key])})
 	output_dict["children"] = cluster_list
-	output_list.append(output_dict)
-	output = [{"name": "flareAnalytics", "children": output_list}]
+	output.append(output_dict)
 	return output
 
 	# pl.figure("K-Means: Random Init")
