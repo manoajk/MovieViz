@@ -11,14 +11,14 @@
 function bubbleChart() {
   // Constants for sizing
   var width = 2800;
-  var height = 2100;
+  var height = 1800;
 
   // tooltip for mouseover functionality
   var tooltip = floatingTooltip('gates_tooltip', 240);
 
   // Locations to move bubbles towards, depending
   // on which view mode is selected.
-  var center = { x: width / 2, y: height / 2 };
+  var center = { x: 2*width/5 , y: height / 4 };
 
   // var yearCenters = {
   //   2005: { x: width / 3, y: height / 2 },
