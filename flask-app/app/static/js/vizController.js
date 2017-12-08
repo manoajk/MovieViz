@@ -75,7 +75,7 @@ function showViz1() {
   $('#viz2Container').hide();
   $('#viz3Container').hide();
   $('#viz1Container').show();
-  $('#viz1').text("Filtered Movies");
+  $('#viz1').html("<h3>All Movies</h3>");
 
   if (bubbleCharts.length == 0) {
     showBase('#viz1Container');
@@ -90,8 +90,9 @@ function showViz2() {
   $('#viz1Container').hide();
   $('#viz3Container').hide();
   $('#viz2Container').show();
-  $('#viz2').text("Filtered Movies");
-
+  $('#viz2').html("<h3>Filters Applied:</h3>\
+    <h4>" + attrDict[attributes[$('#attribute1').val()]][0] + "</h4>\
+    <ul><h5><li>" + Array.from(clusters[1]).join("</li><li>") + "</li></h5></ul>");
   if (bubbleCharts.length <= 1 || !eqSet(clusters[1], prevClusters[1])) {
     prevClusters[1].clear();
     for (let cluster of clusters[1]) {
@@ -124,7 +125,12 @@ function showViz3() {
   $('#viz1Container').hide();
   $('#viz2Container').hide();
   $('#viz3Container').show();
-  $('#viz3').text("Filtered Movies");
+  // $('#viz3').text("Filtered Movies 3");
+  $('#viz3').html("<h3>Filters Applied:</h3>\
+        <h4>" + attrDict[attributes[$('#attribute1').val()]][0] + "</h4>\
+        <ul><h5><li>" + Array.from(clusters[1]).join("</li><li>") + "</li></h5>\
+        <h4>" + attrDict[attributes[$('#attribute2').val()]][0] + "</h4>\
+        <ul><h5><li>" + Array.from(clusters[2]).join("</li><li>") + "</li></h5></ul>");
 
   if (bubbleCharts.length <= 2 || !eqSet(clusters[2], prevClusters[2])) {
     prevClusters[2].clear();
@@ -197,9 +203,16 @@ function updateViz1(value) {
   console.log(clusters)
   if (value == -1) {
     bubbleCharts[0].toggleDisplay("all");
-    $('#viz1').text("Filtered Movies");
+    $('#viz1').html("<h3>All Movies</h3>");
   } else {
-    $('#viz1').text("Movies clustered based on " + attributes[value]);
+    $('#viz1').html("<h3>Movies clustered based on " + attrDict[attributes[value]][0] + "<h3>");
+    // $('#viz1').html("<b><h3>Filters Applied:</h3></b><ul><li>" +  + "</li></ul>");
+
+      // Filters Applied:
+      // attributes[value]
+
+      // Movies clustered based on " + attributes[value]);
+
     bubbleCharts[0].toggleDisplay(attributes[value]);
     var clustersDict = bubbleCharts[0].getClusterData();
 
@@ -252,11 +265,17 @@ function updateViz2(value) {
   if (value == -1) {
     bubbleCharts[1].toggleDisplay("all");
   } else {
+    $('#viz2').html("<h3>Filters Applied:</h3>\
+    <h4>" + attrDict[attributes[$('#attribute1').val()]][0] + "</h4>\
+    <ul><h5><li>" + Array.from(clusters[1]).join("</li><li>") + "</li></h5></ul>");
     bubbleCharts[1].toggleDisplay(attributes[value]);
     var clustersDict = bubbleCharts[1].getClusterData();
 
+    console.log("selected attr from v1 ");
+    
     $('#viz2Container .title').click(function() {
       $(this).toggleClass('clicked');
+
       if (clusters[2].has($(this).attr('key'))) {
         clusters[2].delete($(this).attr('key'));
       } else {
@@ -301,6 +320,11 @@ function updateViz3(value) {
     if (value == -1) {
       bubbleCharts[2].toggleDisplay("all");
     } else {
+      $('#viz3').html("<h3>Filters Applied:</h3>\
+        <h4>" + attrDict[attributes[$('#attribute1').val()]][0] + "</h4>\
+        <ul><h5><li>" + Array.from(clusters[1]).join("</li><li>") + "</li></h5>\
+        <h4>" + attrDict[attributes[$('#attribute2').val()]][0] + "</h4>\
+        <ul><h5><li>" + Array.from(clusters[2]).join("</li><li>") + "</li></h5></ul>");
       bubbleCharts[2].toggleDisplay(attributes[value]);
       var clustersDict = bubbleCharts[2].getClusterData();
 

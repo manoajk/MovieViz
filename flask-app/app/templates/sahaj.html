@@ -123,17 +123,14 @@
 	}
 
 	.viz_title {
-	  position: relative;
-	  z-index: 10;
-	  display: flex;
-	  justify-content: center;
-	  align-items: stretch;
-	  width: 100%;
-	  max-width: 800px;
-	  margin: 0 auto;
-	  box-sizing: border-box;
-	  padding: 50px 0 100px;
-	  list-style-type: none;
+		position: relative;
+		justify-content: center;
+		width: 100%;
+		max-width: 800px;
+		max-width: 800px;
+		margin: 0 auto;
+		box-sizing: border-box;
+		padding: 50px 0 100px;
 	}
 
 
@@ -165,7 +162,7 @@
 			</ol>
 			</h4>
 			<br>
-			<h3>Get your popcorn, take a seat, and enjoy the experience.</h3>
+			<h3>Get your popcorn, take a seat, and enjoy the experience!</h3>
 			<h6>** DISCLAIMER: The visualization may take up to 6 seconds to render **</h6>
 		</div>
 		<ul class="tabs-controls">
@@ -176,7 +173,7 @@
 				<select id="attribute1" class="form-control">
 					<option value="-1">All Movies</option>
 					{% for attribute in attributes%}
-					<option value="{{loop.index0}}">{{attribute}}</option>
+					<option value="{{loop.index0}}">{{ attr_dict[attribute][0] }}</option>
 					{% endfor %}
 				</select>
 			</li>
@@ -187,7 +184,7 @@
 				<select id="attribute2" class="form-control">
 					<option value="-1">All Movies</option>
 					{% for attribute in attributes%}
-					<option value="{{loop.index0}}">{{attribute}}</option>
+					<option value="{{loop.index0}}">{{ attr_dict[attribute][0] }}</option>
 					{% endfor %}
 				</select>
 			</li>
@@ -198,7 +195,7 @@
 				<select id="attribute3" class="form-control">
 					<option value="-1">All Movies</option>
 					{% for attribute in attributes%}
-					<option value="{{loop.index0}}">{{attribute}}</option>
+					<option value="{{loop.index0}}">{{ attr_dict[attribute][0] }}</option>
 				{% endfor %}
 			</select>
 			</li>
@@ -206,13 +203,13 @@
 	</div>
 	<div id="viz">
 		<div id="viz1Container">
-			<h2 id="viz1" class = "viz_title">All Movies</h2>
+			<div id="viz1" class="viz_title"></div>
 		</div>
 		<div id="viz2Container">
-			<h2 id="viz2" class = "viz_title">All Movies</h2>
+			<div id="viz2" class="viz_title"></div>
 		</div>
 		<div id="viz3Container">
-			<h2 id="viz3" class = "viz_title">All Movies</h2>
+			<div id="viz3" class="viz_title"></div>
 		</div>
 	</div>
 
@@ -221,6 +218,7 @@
  	<script src="static/js/bubble_chart.js"></script>
  	<script type="text/javascript">
  		var attributes = {{ attributes|safe }};
+ 		var attrDict = {{ attr_dict|safe }};
  	</script>
  	<script src="static/js/vizController.js"></script>
 

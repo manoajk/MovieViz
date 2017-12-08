@@ -13,7 +13,15 @@ def front_page():
 @app.route('/sahaj')
 def sahaj():
 	attributes = ['genre', 'runtime', 'userRating', 'releaseMonth', 'budget']
-	return render_template("sahaj.html",attributes=attributes)
+	attr_dict = {
+		'genre': ['Genre'],
+		'runtime': ['Runtime'],
+		'userRating': ['User Rating'],
+		'releaseMonth': ['Release Month'],
+		'budget': ['Budget']
+	}
+	return render_template("sahaj.html", attributes=attributes,
+											attr_dict=attr_dict)
 
 @app.route('/getAllMovies')
 def getAllMovies():
@@ -28,8 +36,6 @@ def imdbScraper():
 
 @app.route('/cluster', methods=["GET","POST"])
 def cluster():
-	data = request.form.to_dict()["data"]
-	dataDict = json.loads(data)
-	clusters = clustering(dataDict)
+	clusters = clustering()
 	clusterData = json.dumps(clusters)
 	return clusterData
