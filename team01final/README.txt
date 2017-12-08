@@ -1,11 +1,10 @@
 DESCRIPTION
 
-Our package is a Flask Application, which runs the back-end logic in Python and visualizes our findings in D3.js. 
+Our package is a Flask Application, which runs the back-end logic in Python and visualizes our findings in D3.js. All references to files below assume you are viewing within the `CODE` directory.
 
-The clustering portion of our project is the most computationally intensive, and so the 
+The clustering portion of our project is the most computationally intensive, and so the `clustering.py` uses a method-driven approach to cluster given our inputs and desired filters. `config.py` serves to set up the database connection to our SQLite database held in `main.db`
 
-"main.py" is the file that drives the application, but the file that handles the communication between Python and HTML is "app/views.py"
-
+`main.py` and `__init__.py` are the files that drive the application, but the file that handles the communication between Python and HTML is `app/views.py`. `app/templates` holds the HTML files (which in this case is only `movieviz.html`) that our application runs. Our JavaScript and CSS files are held in `app/static/js` and `app/static/css` respectively, where the HTML files can refer to for external usage.
 
 
 INSTALLATION

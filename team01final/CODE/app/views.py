@@ -9,10 +9,10 @@ import json
 def movie_viz():
 	attributes = ['genre', 'runtime', 'userRating', 'releaseMonth', 'budget']
 	attr_dict = {
-		'genre': ['Genre'],
+		'genre': ['Genre', ''],
 		'runtime': ['Runtime', 'mins'],
 		'userRating': ['User Rating', 'stars'],
-		'releaseMonth': ['Release Month'],
+		'releaseMonth': ['Release Month', ''],
 		'budget': ['Budget', '($M)']
 	}
 	return render_template("movieviz.html", attributes=attributes,
