@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" href="static/css/reset.css">
+  	<link rel="stylesheet" href="static/css/bubble_chart.css">
+  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  	<!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+	<style>
+	body {
+		background: #edebd7;
+		font-family: "Open Sans", sans-serif;
+	}
+
+	.tabs-controls {
+	  position: relative;
+	  z-index: 10;
+	  display: flex;
+	  justify-content: center;
+	  align-items: stretch;
+	  width: 100%;
+	  max-width: 800px;
+	  margin: 0 auto;
+	  box-sizing: border-box;
+	  padding: 50px 0 100px;
+	  list-style-type: none;
+	}
+
+	.tabs-controls__link {
+	  position: relative;
+	  display: block;
+	  padding: 16px 32px;
+	  font-size: 20px;
+	  font-weight: 700;
+	  color: #423e37;
+	  text-transform: uppercase;
+	  text-decoration: none;
+
+	  &:after {
+	    position: absolute;
+	    left: 0;
+	    right: 0;
+	    bottom: 0;
+	    display: block;
+	    width: 0;
+	    height: 4px;
+	    background-color: #423e37;
+	    border-radius: 2px;
+	    margin: auto;
+	    content: "";
+	    transition: width 0.4s;
+	  }
+	}
+
+	.tabs-controls__link--active {
+	  &:after {
+	    width: 100%;
+	  }
+	}
+
+	#titleHeader {
+		padding-top: 25px;
+		padding-left: 25px;
+		padding-bottom: 25px;
+		padding-right: 25px;
+		background-color: #12207c;
+		width: 100%;
+		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+		color: white;
+		font-weight: bold;
+	}
+
+	#titleHeader > h1 {
+		font-size: 3em;
+		color: #f2e78a;
+		font-family: impact;
+	}
+
+	#directionsHeader {
+		padding-top: 25px;
+		padding-left: 25px;
+		padding-bottom: 25px;
+		padding-right: 25px;
+		background-color: gray;
+		width: 100%;
+		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+		color: white;
+		font-weight: bold;
+	}
+
+	#directionsHeader > li {
+		font-size: 2em;
+	}
+
+	.title {
+		font-family: Georgia;
+	}
+
+	.title:hover {
+		font-size: 2em;
+	}
+
+	.clicked {
+		font-size: 2em;
+		fill: #1e90ff;
+		font-size: italic;
+	}
+
+	.tabs {
+		cursor: pointer;
+	}
+
+	#viz {
+		cursor: pointer;
+	}
+
+	#nav {
+		margin: 10px 0;
+	}
+
+	.viz_title {
+		position: relative;
+		justify-content: center;
+		width: 100%;
+		max-width: 800px;
+		max-width: 800px;
+		margin: 0 auto;
+		box-sizing: border-box;
+		padding: 50px 0 100px;
+	}
+
+
+	</style>
+</head>
+<body>
+	<div id="nav">
+		<div id="titleHeader">
+			<h1 align="center">Block-Cluster: Visualizing Movie Success</h1>
+			<h2 align="center">Sana Ajani, Sahaj Bhatt, Manoaj Kandiakounder, Matthew Owens, Rahul Patel, Dhruv Sagar</h2>
+		</div>
+		<div id="directionsHeader">
+			<h2>We would like to introduce you to Block-Cluster! As the best <u>unbiased</u> movie visualization tool on the market, we want to help you discover relationships between a movie's attributes and its success. Here's how you can get started:</h2>
+			<br>
+			<h4>
+			<ol>
+				<li>
+					Start by looking at the movie data that is contained in our force-directed bubble chart below. Hover over some of the movies and you'll get information on them.
+				</li>
+				<li>
+					Pick an attribute to filter on! Here is where you can start to get an idea as to how you can differentiate movies. 
+				</li>
+				<li>
+					Switch tabs to go back to earlier filters. Narrow down your movies from one tab to the next by clicking on category titles
+				</li>
+				<!-- <li>
+					Enjoy! This tool is for YOU. We want you to understand how movies are interrelated, and perhaps give you suggestions that aren't affected by social media or general bias that propagates in regular movie ratings.
+				</li> -->
+			</ol>
+			</h4>
+			<br>
+			<h3>Get your popcorn, take a seat, and enjoy the experience!</h3>
+			<h6>** DISCLAIMER: The visualization may take up to 6 seconds to render **</h6>
+		</div>
+		<ul class="tabs-controls">
+			<li class="tabs-controls__item" id = "tab1">
+				<a href="#" class="tabs-controls__link tabs-controls__link--active" data-id="1">
+					Tab A
+				</a>
+				<select id="attribute1" class="form-control">
+					<option value="-1">All Movies</option>
+					{% for attribute in attributes%}
+					<option value="{{loop.index0}}">{{ attr_dict[attribute][0] }}</option>
+					{% endfor %}
+				</select>
+			</li>
+			<li class="tabs-controls__item" id = "tab2">
+				<a href="#" class="tabs-controls__link" data-id="2">
+					Tab B
+			    </a>
+				<select id="attribute2" class="form-control">
+					<option value="-1">All Movies</option>
+					{% for attribute in attributes%}
+					<option value="{{loop.index0}}">{{ attr_dict[attribute][0] }}</option>
+					{% endfor %}
+				</select>
+			</li>
+			<li class="tabs-controls__item" id = "tab3">
+				<a href="#" class="tabs-controls__link" data-id="3">
+					Tab C
+				</a>
+				<select id="attribute3" class="form-control">
+					<option value="-1">All Movies</option>
+					{% for attribute in attributes%}
+					<option value="{{loop.index0}}">{{ attr_dict[attribute][0] }}</option>
+				{% endfor %}
+			</select>
+			</li>
+		</ul>
+<!-- 		<div class = "tabs" id="tab1" style="display:inline-block;">
+			<h2>Tab 1</h2>
+			<select id="attribute1" class="form-control">
+				<option value="-1">Choose an Attribute</option>
+				{% for attribute in attributes%}
+				<option value="{{loop.index0}}">{{attribute}}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div class = "tabs" id="tab2" style="display:inline-block;">
+			<h2>Tab 2</h2>
+			<select id="attribute2" class="form-control">
+				<option value="-1">Choose an Attribute</option>
+				{% for attribute in attributes%}
+				<option value="{{loop.index0}}">{{attribute}}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div class = "tabs" id="tab3" style="display:inline-block;">
+			<h2>Tab 3</h2>
+			<select id="attribute3" class="form-control">
+				<option value="-1">Choose an Attribute</option>
+				{% for attribute in attributes%}
+				<option value="{{loop.index0}}">{{attribute}}</option>
+				{% endfor %}
+			</select>
+		</div> -->
+	</div>
+	<div id="viz">
+		<div id="viz1Container">
+			<div id="viz1" class="viz_title"></div>
+		</div>
+		<div id="viz2Container">
+			<div id="viz2" class="viz_title"></div>
+		</div>
+		<div id="viz3Container">
+			<div id="viz3" class="viz_title"></div>
+		</div>
+	</div>
+
+	<script src="static/js/d3.js"></script>
+ 	<script src="static/js/tooltip.js"></script>
+ 	<script src="static/js/bubble_chart.js"></script>
+ 	<script type="text/javascript">
+ 		var attributes = {{ attributes|safe }};
+ 		var attrDict = {{ attr_dict|safe }};
+ 	</script>
+ 	<script src="static/js/vizController.js"></script>
+
+	
+</body>
+</html>
