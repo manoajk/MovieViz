@@ -88,8 +88,20 @@ function showViz3() {
     }
     hideViz3();
     if (clusters[2].size == 0) {
-      showBase('#viz3Container');
-      $('#tab3').show();
+      if (clusters[1].size == 0) {
+        showBase('#viz3Container');
+      } else {
+        var nodes = [];
+        for (let cluster of clusters[1]) {
+          var clusterData = bubbleCharts[0].getClusterData();
+          console.log(clusterData)
+          for (j = 0; j < clusterData[cluster].length; j++) {
+            nodes.push(clusterData[cluster][j]);
+          }
+        }
+        showWithNodes('#viz3Container', nodes, 2);
+      }
+      
     } else {
       var nodes = [];
       for (let cluster of clusters[2]) {
@@ -100,8 +112,8 @@ function showViz3() {
         }
       }
       showWithNodes('#viz3Container', nodes, 2);
-      $('#tab3').show();
     }
+    $('#tab3').show();
   }
 }
 
