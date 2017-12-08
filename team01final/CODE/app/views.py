@@ -15,7 +15,7 @@ def movie_viz():
 		'releaseMonth': ['Release Month'],
 		'budget': ['Budget', '($M)']
 	}
-	return render_template("sahaj.html", attributes=attributes,
+	return render_template("movieviz.html", attributes=attributes,
 											attr_dict=attr_dict)
 
 @app.route('/getAllMovies')
