@@ -7,20 +7,7 @@ from clustering import clustering
 import json
 
 @app.route('/')
-def front_page():
-	statement = "Howdy CX4242 Group 01!"
-	return render_template("index.html", statement=statement)
-
-@app.route('/miserables')
-def miserables():
-	return render_template("sample_graph.html")
-
-@app.route('/dhruv')
-def dhruv():
-
-	return render_template("dhruv.html")
-
-@app.route('/sahaj')
+@app.route('/MovieViz')
 def sahaj():
 	attributes = ['genre', 'runtime', 'userRating', 'releaseMonth', 'budget']
 	attr_dict = {
