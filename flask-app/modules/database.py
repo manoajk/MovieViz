@@ -75,14 +75,6 @@ def getAllMovies():
             movieList.append(movieDict)
             i+=1
 
-    # getCursor().execute("SELECT * FROM ratings")
-    # ratings = getCursor().fetchall()
-
-    # for rating in ratings:
-    #     tconst = rating[0]
-    #     if tconst in movieIndex:
-    #         movieList[movieIndex[tconst]]['userRating'] = rating[1]
-
     return movieList
 
 

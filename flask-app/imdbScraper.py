@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 from requests import get
 from modules import database
 
+# File used to run different functions that scrape the imdb page
+
 def getPageText(url):
     return get(url).text
 

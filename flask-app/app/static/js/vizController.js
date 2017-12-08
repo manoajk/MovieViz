@@ -4,6 +4,8 @@ var prevClusters = [new Set(), new Set(), new Set()]
 var allData = []
 var tooltip = floatingTooltip('summary_tooltip', 240);
 
+
+// Show a detailed tooltip for a cluster
 function showDetail(clusterAverages, event) {
 
   var content = '<span class="name">Number of movies: </span><span class="value">' +
@@ -32,30 +34,29 @@ function showDetail(clusterAverages, event) {
   tooltip.showTooltip(content, event);
 }
 
+// Converts a float number to a string with 3 decimal places
 function truncate(num) {
-  console.log(num);
   num = num.toString(); //If it's not already a String
   num = num.slice(0, (num.indexOf("."))+3); //With 3 exposing the hundredths place
   Number(num);
   return num;
 }
 
-
+// Function to check if two input sets are equal
 function eqSet(as, bs) {
   if (as.size !== bs.size) return false;
   for (var a of as) if (!bs.has(a)) return false;
   return true;
 }
 
+// Show the initial base viz with all the movie data
 function showBase(id) {
-  console.log("generating base viz")
-  console.log(bubbleCharts)
-  console.log(clusters)
   var myBubbleChart = bubbleChart();
   bubbleCharts.push(myBubbleChart);
   myBubbleChart(id, allData, null);
 }
 
+// Show the bubble chart with the input node data
 function showWithNodes(id, nodes, index) {
   console.log("generating viz " + (index+1).toString())
   console.log(bubbleCharts)
@@ -66,6 +67,7 @@ function showWithNodes(id, nodes, index) {
   myBubbleChart(id, null, nodes);
 }
 
+// Show the first visualization appropriately
 function showViz1() {
   console.log("showing viz 1")
   console.log(bubbleCharts)
@@ -80,6 +82,7 @@ function showViz1() {
   }
 }
 
+// Show the 2nd visualization appropriately
 function showViz2() {
   console.log("showing viz 2")
   console.log(bubbleCharts)
@@ -114,6 +117,7 @@ function showViz2() {
   }
 }
 
+// Show the 3rd visualization appropriately
 function showViz3() {
   console.log("showing viz 3")
   console.log(bubbleCharts)
@@ -135,8 +139,20 @@ function showViz3() {
     }
     hideViz3();
     if (clusters[2].size == 0) {
-      showBase('#viz3Container');
-      $('#tab3').show();
+      if (clusters[1].size == 0) {
+        showBase('#viz3Container');
+      } else {
+        var nodes = [];
+        for (let cluster of clusters[1]) {
+          var clusterData = bubbleCharts[0].getClusterData();
+          console.log(clusterData)
+          for (j = 0; j < clusterData[cluster].length; j++) {
+            nodes.push(clusterData[cluster][j]);
+          }
+        }
+        showWithNodes('#viz3Container', nodes, 2);
+      }
+      
     } else {
       var nodes = [];
       for (let cluster of clusters[2]) {
@@ -147,11 +163,12 @@ function showViz3() {
         }
       }
       showWithNodes('#viz3Container', nodes, 2);
-      $('#tab3').show();
     }
+    $('#tab3').show();
   }
 }
 
+// Hide and reset the 2nd viz
 function hideViz2() {
   console.log("hiding viz 2")
   console.log(bubbleCharts)
@@ -166,6 +183,7 @@ function hideViz2() {
   }
 }
 
+// Hide and reset the 3rd viz
 function hideViz3() {
   console.log("hiding viz 3")
   console.log(bubbleCharts)
@@ -343,6 +361,7 @@ function updateViz3(value) {
 }
 
 
+// Perform the appropriate updates when a new attribute is selected in the dropdowns
 $('#attribute1').change(function() {
   var selectedValue = $(this).val();
   clusters[1].clear();
@@ -374,6 +393,8 @@ $('#attribute3').change(function() {
   updateViz3(selectedValue);
 });
 
+
+// Show the appropriate visualization when a tab is clicked
 $('#tab1').click(function() {
   showViz1();
 })
@@ -386,6 +407,8 @@ $('#tab3').click(function() {
   showViz3();
 })
 
+
+//Initially only show the first viz
 $('#tab1').show();
 $('#tab2').hide();
 $('#tab3').hide();
@@ -395,8 +418,7 @@ $('#viz3Container').hide();
 $('#viz1Container').show();
 
 
-
-
+// Initially get all the movie data, store it, and show the first viz
 $.getJSON('/getAllMovies', function(data, error) {
   allData = data;
 
