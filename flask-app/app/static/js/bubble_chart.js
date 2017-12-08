@@ -405,6 +405,33 @@ function bubbleChart() {
       .attr('width', width)
       .attr('height', height);
 
+    colorScale = d3.scaleLinear().domain([0, 5]).range(['orange',  'purple']);
+
+    var legend = svg.selectAll(".legend")
+    .data(colorScale.ticks(9).reverse())
+    .enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function(d, i) { return "translate(" + (50) + "," + (20 + i * 20) + ")"; });
+
+    legend.append("rect")
+    .attr("width", 20)
+    .attr("height", 20)
+    .style("fill", colorScale);
+
+    legend.append("text")
+    .attr("x", 26)
+    .attr("y", 10)
+    .attr("dy", ".35em")
+    .text(function (d, i) {
+        if (i == 0) {
+          return "High Awards & Nominations";
+        }
+        if (i == 10) {
+          return "Low Awards & Nominations";
+        }
+        return "";
+      ;});
+
     // Bind nodes data to what will become DOM elements to represent them.
     bubbles = svg.selectAll('.bubble')
       .data(nodes, function (d) { return d.id; });
