@@ -11,14 +11,14 @@
 function bubbleChart() {
   // Constants for sizing
   var width = 2800;
-  var height = 2100;
+  var height = 1800;
 
   // tooltip for mouseover functionality
   var tooltip = floatingTooltip('gates_tooltip', 240);
 
   // Locations to move bubbles towards, depending
   // on which view mode is selected.
-  var center = { x: width / 2, y: height / 2 };
+  var center = { x: 2*width/5 , y: height / 4 };
 
   // var yearCenters = {
   //   2005: { x: width / 3, y: height / 2 },
@@ -336,19 +336,19 @@ function bubbleChart() {
       for (i = 0; i < userRatingClusters.length; i++) {
         var name = userRatingClusters[i]
         userRatingCenters[name] = {x: (i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4};
-        userRatingTitlePositions[name + " stars"] = {x: userRatingCenters[name].x, y: i > 6 ? userRatingCenters[name].y - 50 : userRatingCenters[name].y - 280, key: name};
+        userRatingTitlePositions[name + " stars"] = {x: userRatingCenters[name].x, y: i > 6 ? userRatingCenters[name].y - 50 : userRatingCenters[name].y - 380, key: name};
       }
 
       for (i = 0; i < runtimeClusters.length; i++) {
         var name = runtimeClusters[i]
         runtimeCenters[name] = {name: name, x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4};
-        runtimeTitlePositions[name + " mins"] = {x: runtimeCenters[name].x, y: i > 4 ? runtimeCenters[name].y - 50 : runtimeCenters[name].y - 300, key: name};
+        runtimeTitlePositions[name + " mins"] = {x: runtimeCenters[name].x, y: runtimeCenters[name].y - 380, key: name};
       }
 
       for (i = 0; i < budgetClusters.length; i++) {
         var name = budgetClusters[i]
         budgetCenters[name] = {name: name, x:(i%3 + 1)*width/4 , y: (Math.floor(i/3) + 1) * height/4};
-        budgetTitlePositions[name + " ($M)"] = {x: budgetCenters[name].x, y: i > 2 ? budgetCenters[name].y - 50 : budgetCenters[name].y - 340, key: name};
+        budgetTitlePositions[name + " ($M)"] = {x: budgetCenters[name].x, y: i > 2 ? budgetCenters[name].y - 50 : budgetCenters[name].y - 380, key: name};
       }
 
       for (d in rawData) {
@@ -404,6 +404,33 @@ function bubbleChart() {
       .append('svg')
       .attr('width', width)
       .attr('height', height);
+
+    colorScale = d3.scaleLinear().domain([0, 5]).range(['orange',  'purple']);
+
+    var legend = svg.selectAll(".legend")
+    .data(colorScale.ticks(9).reverse())
+    .enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function(d, i) { return "translate(" + (50) + "," + (20 + i * 20) + ")"; });
+
+    legend.append("rect")
+    .attr("width", 20)
+    .attr("height", 20)
+    .style("fill", colorScale);
+
+    legend.append("text")
+    .attr("x", 26)
+    .attr("y", 10)
+    .attr("dy", ".35em")
+    .text(function (d, i) {
+        if (i == 0) {
+          return "High Awards & Nominations";
+        }
+        if (i == 10) {
+          return "Low Awards & Nominations";
+        }
+        return "";
+      ;});
 
     // Bind nodes data to what will become DOM elements to represent them.
     bubbles = svg.selectAll('.bubble')
@@ -474,6 +501,7 @@ function bubbleChart() {
                   d.wins + 
                   '</span>';
 
+    console.log(content);
 
     tooltip.showTooltip(content, d3.event);
   }
